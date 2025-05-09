@@ -1,1 +1,2 @@
 # Colored-Trails
+Développement d'un environnement multi-agents pour le jeu Colored Trails, utilisant JADE pour gérer les interactions entre agents et prendre des décisions autonomes afin de finir le jeu.
