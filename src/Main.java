@@ -17,12 +17,23 @@ public class Main {
         topPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 20));
 
         Grille grid = new Grille(5, 7);
-        Color buttonColor = grid.getRandomColorUsed(); 
+        Color buttonColor = grid.getRandomColorUsed();
+        Color lightBackground = lightenColor(buttonColor, 0.3f); 
+
+        mainPanel.setBackground(lightBackground);
+        mainPanel.setOpaque(true);
+ 
 
         RoundedButton startButton = new RoundedButton("Start", buttonColor); 
         startButton.setFont(new Font("Monospaced", Font.BOLD, 25)); 
         startButton.setPreferredSize(new Dimension(120, 40));
         topPanel.add(startButton);
+
+        JPanel settingsPanel = new JPanel();
+        settingsPanel.setOpaque(false); 
+        settingsPanel.setLayout(new BorderLayout());
+
+        topPanel.add(settingsPanel);
 
         mainPanel.add(topPanel);
         mainPanel.add(Box.createVerticalStrut(10));
@@ -37,6 +48,13 @@ public class Main {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    public static Color lightenColor(Color color, float factor) {
+        int r = Math.min(255, (int)(color.getRed() + (255 - color.getRed()) * factor));
+        int g = Math.min(255, (int)(color.getGreen() + (255 - color.getGreen()) * factor));
+        int b = Math.min(255, (int)(color.getBlue() + (255 - color.getBlue()) * factor));
+        return new Color(r, g, b);
     }
 
     static class RoundedButton extends JButton {
