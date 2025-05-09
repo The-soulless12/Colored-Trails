@@ -9,40 +9,47 @@ public class Main {
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JPanel topPanel = new JPanel();
-        topPanel.setPreferredSize(new Dimension(600, 80));
-        topPanel.setOpaque(false);
-        topPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 20, 20, 20)); // Les marges de l'écran d'accueil
 
         Grille grid = new Grille(5, 7);
         Color buttonColor = grid.getRandomColorUsed();
-        Color lightBackground = lightenColor(buttonColor, 0.3f); 
-
+        Color lightBackground = lightenColor(buttonColor, 0.6f);
         mainPanel.setBackground(lightBackground);
         mainPanel.setOpaque(true);
- 
 
-        RoundedButton startButton = new RoundedButton("Start", buttonColor); 
-        startButton.setFont(new Font("Monospaced", Font.BOLD, 25)); 
+        JPanel ribbon1 = new JPanel();
+        ribbon1.setPreferredSize(new Dimension(600, 40)); 
+        ribbon1.setOpaque(false);
+        ribbon1.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0)); 
+
+        ImageIcon icon = new ImageIcon("Images/settings.png");
+        Image image = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(image);
+        JButton cornerButton = new JButton(scaledIcon);
+        cornerButton.setPreferredSize(new Dimension(30, 30));
+        cornerButton.setFocusPainted(false);
+        cornerButton.setContentAreaFilled(false);
+        cornerButton.setBorderPainted(false);
+        cornerButton.setMargin(new Insets(0, 0, 0, 0));
+        ribbon1.add(cornerButton);
+
+        JPanel ribbon2 = new JPanel();
+        ribbon2.setPreferredSize(new Dimension(600, 40));
+        ribbon2.setOpaque(false);
+        ribbon2.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        RoundedButton startButton = new RoundedButton("Start", buttonColor);
+        startButton.setFont(new Font("Monospaced", Font.BOLD, 25));
         startButton.setPreferredSize(new Dimension(120, 40));
-        topPanel.add(startButton);
+        ribbon2.add(startButton);
 
-        JPanel settingsPanel = new JPanel();
-        settingsPanel.setOpaque(false); 
-        settingsPanel.setLayout(new BorderLayout());
+        JPanel ribbon3 = new JPanel();
+        ribbon3.setPreferredSize(new Dimension(600, 20));
+        ribbon3.setOpaque(false);
 
-        topPanel.add(settingsPanel);
-
-        mainPanel.add(topPanel);
-        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(ribbon1);
+        mainPanel.add(ribbon2);
+        mainPanel.add(ribbon3);
         mainPanel.add(grid);
-
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setPreferredSize(new Dimension(100, 40));
-        bottomPanel.setOpaque(false);
-        mainPanel.add(bottomPanel);
 
         frame.setContentPane(mainPanel);
         frame.pack();
@@ -89,7 +96,7 @@ public class Main {
 
         @Override
         protected void paintBorder(Graphics g) {
-           
+            
         }
     }
 }
