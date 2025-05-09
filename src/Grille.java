@@ -39,6 +39,11 @@ public class Grille extends JPanel {
         return colors;
     }
 
+    public Color getRandomColorUsed() {
+        Random rand = new Random();
+        return pastelColors[rand.nextInt(pastelColors.length)];
+    }
+
     static class RoundedPanel extends JPanel {
         private final int arc;
         private final Color backgroundColor;
