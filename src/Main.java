@@ -1,5 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -12,6 +15,17 @@ public class Main {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 20, 20, 20)); // Les marges de l'écran d'accueil
 
         Grille grid = new Grille(5, 7);
+        Joueur joueur1 = createRandomJoueur("Images/agent1.png");
+        Joueur joueur2 = createRandomJoueur("Images/agent2.png");
+        
+        // Vérification que les positions ne sont pas identiques
+        while (joueur1.getPositionDepart().getX() == joueur2.getPositionDepart().getX() && 
+               joueur1.getPositionDepart().getY() == joueur2.getPositionDepart().getY()) {
+            joueur2 = createRandomJoueur("Images/agent2.png");
+        }
+        grid.ajouterJoueur(joueur1);  
+        grid.ajouterJoueur(joueur2);
+
         Color buttonColor = grid.getRandomColorUsed();
         Color lightBackground = lightenColor(buttonColor, 0.6f);
         mainPanel.setBackground(lightBackground);
@@ -55,6 +69,7 @@ public class Main {
         rightPanel.setOpaque(false);
         rightPanel.add(cornerButton);
         ribbon1.add(rightPanel, BorderLayout.EAST);
+        
         // Logout button
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
         leftPanel.setOpaque(false);
@@ -87,6 +102,7 @@ public class Main {
         });
         leftPanel.add(logoutButton);
         ribbon1.add(leftPanel, BorderLayout.WEST);
+
         // Ruban 02 : Start button
         JPanel ribbon2 = new JPanel();
         ribbon2.setPreferredSize(new Dimension(600, 40));
@@ -97,6 +113,7 @@ public class Main {
         startButton.setPreferredSize(new Dimension(120, 40));
         startButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ribbon2.add(startButton);
+
         // Ruban 03 : Espace vide
         JPanel ribbon3 = new JPanel();
         ribbon3.setPreferredSize(new Dimension(600, 20));
@@ -111,6 +128,11 @@ public class Main {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+        
+        // On affiche les joueurs après que tout est visible
+        SwingUtilities.invokeLater(() -> {
+            grid.dessinerJoueurs();
+        });
     }
 
     public static Color lightenColor(Color color, float factor) {
@@ -118,6 +140,20 @@ public class Main {
         int g = Math.min(255, (int)(color.getGreen() + (255 - color.getGreen()) * factor));
         int b = Math.min(255, (int)(color.getBlue() + (255 - color.getBlue()) * factor));
         return new Color(r, g, b);
+    }
+
+    public static Joueur createRandomJoueur(String iconPath) {
+        Random rand = new Random();
+        int x = rand.nextInt(5);  
+        int y = rand.nextInt(7);  
+
+        Position positionDepart = new Position(x, y);
+        Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7)); 
+        List<String> jetons = new ArrayList<>(); 
+
+        Joueur joueur = new Joueur(iconPath, positionDepart, positionBut, jetons);  
+
+        return joueur;
     }
 
     static class RoundedButton extends JButton {
