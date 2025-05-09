@@ -3,13 +3,13 @@ import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Colored Trails");
+        JFrame frame = new JFrame("COLORED TRAILS");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 20, 20, 20)); // Les marges de l'écran d'accueil
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 20, 20, 20)); // Les marges de l'écran d'accueil
 
         Grille grid = new Grille(5, 7);
         Color buttonColor = grid.getRandomColorUsed();
@@ -17,11 +17,12 @@ public class Main {
         mainPanel.setBackground(lightBackground);
         mainPanel.setOpaque(true);
 
+        // Ruban 01 : Settings and Logout
         JPanel ribbon1 = new JPanel();
         ribbon1.setPreferredSize(new Dimension(600, 40)); 
         ribbon1.setOpaque(false);
-        ribbon1.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0)); 
-
+        ribbon1.setLayout(new BorderLayout());
+        // Settings button
         ImageIcon icon = new ImageIcon("Images/settings.png");
         Image image = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(image);
@@ -31,8 +32,62 @@ public class Main {
         cornerButton.setContentAreaFilled(false);
         cornerButton.setBorderPainted(false);
         cornerButton.setMargin(new Insets(0, 0, 0, 0));
-        ribbon1.add(cornerButton);
+        cornerButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        cornerButton.addActionListener(e -> {
+            JDialog settingsDialog = new JDialog(frame, "Paramètres", true);
+            settingsDialog.setSize(300, 200);
+            settingsDialog.setLayout(new BorderLayout());
 
+            JPanel centerPanel = new JPanel();
+            centerPanel.setOpaque(false); 
+            settingsDialog.add(centerPanel, BorderLayout.CENTER);
+
+            JButton validateButton = new JButton("Valider");
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.add(validateButton);
+            settingsDialog.add(bottomPanel, BorderLayout.SOUTH);
+
+            validateButton.addActionListener(ev -> settingsDialog.dispose());
+            settingsDialog.setLocationRelativeTo(frame);
+            settingsDialog.setVisible(true);
+        });
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 5));
+        rightPanel.setOpaque(false);
+        rightPanel.add(cornerButton);
+        ribbon1.add(rightPanel, BorderLayout.EAST);
+        // Logout button
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        leftPanel.setOpaque(false);
+        ImageIcon logoutIcon = new ImageIcon("Images/logout.png");
+        Image logoutImg = logoutIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        ImageIcon logoutscaledIcon = new ImageIcon(logoutImg);
+
+        ImageIcon logoutIcon2 = new ImageIcon("Images/logout2.png");
+        Image logoutImg2 = logoutIcon2.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        ImageIcon logoutscaledIcon2 = new ImageIcon(logoutImg2);
+
+        JButton logoutButton = new JButton(logoutscaledIcon);
+        logoutButton.setPreferredSize(new Dimension(30, 30));
+        logoutButton.setFocusPainted(false);
+        logoutButton.setContentAreaFilled(false);
+        logoutButton.setBorderPainted(false);
+        logoutButton.setMargin(new Insets(0, 0, 0, 0));
+        logoutButton.addActionListener(e -> frame.dispose());
+        logoutButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        logoutButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                logoutButton.setIcon(logoutscaledIcon2);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                logoutButton.setIcon(logoutscaledIcon);
+            }
+        });
+        leftPanel.add(logoutButton);
+        ribbon1.add(leftPanel, BorderLayout.WEST);
+        // Ruban 02 : Start button
         JPanel ribbon2 = new JPanel();
         ribbon2.setPreferredSize(new Dimension(600, 40));
         ribbon2.setOpaque(false);
@@ -40,8 +95,9 @@ public class Main {
         RoundedButton startButton = new RoundedButton("Start", buttonColor);
         startButton.setFont(new Font("Monospaced", Font.BOLD, 25));
         startButton.setPreferredSize(new Dimension(120, 40));
+        startButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ribbon2.add(startButton);
-
+        // Ruban 03 : Espace vide
         JPanel ribbon3 = new JPanel();
         ribbon3.setPreferredSize(new Dimension(600, 20));
         ribbon3.setOpaque(false);
@@ -77,17 +133,20 @@ public class Main {
 
         @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int shadowOffset = 3;
+            g2.setColor(new Color(0, 0, 0, 60)); 
+            g2.fillRoundRect(shadowOffset, shadowOffset, getWidth() - shadowOffset, getHeight() - shadowOffset, 20, 20);
+
             g2.setColor(backgroundColor);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            g2.fillRoundRect(0, 0, getWidth() - shadowOffset, getHeight() - shadowOffset, 20, 20);
 
             g2.setFont(getFont());
-
             FontMetrics metrics = g2.getFontMetrics();
-            int x = (getWidth() - metrics.stringWidth(getText())) / 2;
-            int y = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
+            int x = (getWidth() - shadowOffset - metrics.stringWidth(getText())) / 2;
+            int y = ((getHeight() - shadowOffset - metrics.getHeight()) / 2) + metrics.getAscent();
             g2.setColor(getForeground());
             g2.drawString(getText(), x, y);
 
