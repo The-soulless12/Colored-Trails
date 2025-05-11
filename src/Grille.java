@@ -192,4 +192,7 @@ public class Grille extends JPanel {
         return getCouleurCase(to);
     }
 
+    public List<Joueur> getJoueurs() {
+        return joueurs;
+    }
 }

@@ -7,6 +7,10 @@ public class Joueur {
     private List<Color> Jetons;
     private String iconPath;
 
+    public void setIconPath(String iconPath) {
+        this.iconPath = iconPath;
+    }
+
     public Joueur(String Path, Position positionDepart, Position position, List<Color> Jetons) {
         this.position = position;
         this.positionDepart = positionDepart;

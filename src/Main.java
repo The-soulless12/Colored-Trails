@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -14,8 +15,8 @@ public class Main {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 20, 20, 20)); // Les marges de l'écran d'accueil
 
         Grille grid = new Grille(5, 7);
-        Joueur joueur1 = createRandomJoueur("Images/agent1.png");
-        Joueur joueur2 = createRandomJoueur("Images/agent2.png");
+        int a = new Random().nextInt(13) + 1, b; while((b = new Random().nextInt(13) + 1) == a);
+        Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png"), joueur2 = createRandomJoueur("Images/agent" + b + ".png");
         
         // Vérification que les positions ne sont pas identiques
         while (joueur1.getPositionDepart().getX() == joueur2.getPositionDepart().getX() && 
@@ -46,16 +47,50 @@ public class Main {
         cornerButton.setBorderPainted(false);
         cornerButton.setMargin(new Insets(0, 0, 0, 0));
         cornerButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // Fenetre Parametres
         cornerButton.addActionListener(e -> {
             JDialog settingsDialog = new JDialog(frame, "Paramètres", true);
-            settingsDialog.setSize(300, 200);
+            settingsDialog.setSize(500, 300);
             settingsDialog.setLayout(new BorderLayout());
+            String[] columnNames = {"Agent", "Numéro Agent", "Position Départ", "Nombre de Cartes"};
+            Object[][] data = new Object[grid.getJoueurs().size()][4];
 
-            JPanel centerPanel = new JPanel();
-            centerPanel.setOpaque(false); 
-            settingsDialog.add(centerPanel, BorderLayout.CENTER);
+            int i = 0;
+            for (Joueur joueur : grid.getJoueurs()) {
+                ImageIcon iconJoueur = new ImageIcon(new ImageIcon(joueur.getIconPath()).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+                data[i][0] = iconJoueur;
+                data[i][1] = i+1;
+                data[i][2] = "(" + joueur.getPositionDepart().getX() + ", " + joueur.getPositionDepart().getY() + ")";
+                data[i][3] = joueur.getJetons().size();
+                i++;
+            }
 
-            JButton validateButton = new JButton("Valider");
+            JTable table = new JTable(new javax.swing.table.DefaultTableModel(data, columnNames) {
+                @Override
+                public Class<?> getColumnClass(int column) {
+                    return column == 0 ? ImageIcon.class : Object.class;
+                }
+
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 0; // Seule la colonne image est éditable
+                }
+            });
+            table.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            table.getTableHeader().setFont(new Font("Monospaced", Font.BOLD, 12));
+            table.getTableHeader().setBackground(buttonColor);
+            table.setRowHeight(30); 
+
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            for (int col = 1; col < table.getColumnCount(); col++) {
+                table.getColumnModel().getColumn(col).setCellRenderer(centerRenderer);
+            }
+
+            JScrollPane scrollPane = new JScrollPane(table);
+            settingsDialog.add(scrollPane, BorderLayout.CENTER);
+
+            JButton validateButton = new JButton("Fermer");
             JPanel bottomPanel = new JPanel();
             bottomPanel.add(validateButton);
             settingsDialog.add(bottomPanel, BorderLayout.SOUTH);
@@ -64,6 +99,7 @@ public class Main {
             settingsDialog.setLocationRelativeTo(frame);
             settingsDialog.setVisible(true);
         });
+
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 5));
         rightPanel.setOpaque(false);
         rightPanel.add(cornerButton);
@@ -149,7 +185,8 @@ public class Main {
         Position positionDepart = new Position(x, y);
         Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
         List<Color> jetons = new ArrayList<>();
-        jetons.add(Color.RED);  // Ajouter une couleur à la liste -------------------------------- TEST
+         // Ajouter une couleur à la liste -------------------------------- BOUCLE WA9IL psq machi ga3 same
+        jetons.add(Color.RED); 
 
         Joueur joueur = new Joueur(iconPath, positionDepart, positionBut, jetons);  
 
