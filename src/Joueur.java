@@ -1,88 +1,70 @@
-import jade.core.Agent;
 import java.util.*;
+import java.awt.Color;
 
-public class Joueur extends Agent {
-    private String iconPath;
+public class Joueur {
+    private Position position;
     private Position positionDepart;
-    private Position positionBut;
-    private List<String> jetons; 
-    private int score = 0;
-    private int toursBloqué = 0;
+    private List<Color> Jetons;
+    private String iconPath;
 
-    @Override
-    protected void setup() {
-        Object[] args = getArguments();
-
-        if (args != null && args.length >= 3) {
-            iconPath = (String) args[0];
-            positionDepart = (Position) args[1];
-            positionBut = (Position) args[2];
-            jetons = new ArrayList<>(Arrays.asList((String[]) args[3]));
-        } else {
-            System.err.println("Arguments manquants ou incorrects !");
-            doDelete(); 
-            return;
-        }
-
-        System.out.println(getLocalName() + " prêt. Départ = " + positionDepart + ", But = " + positionBut);
-        System.out.println("Jetons initiaux : " + jetons);
-    }
-
-    public Joueur(String iconPath, Position positionDepart, Position positionBut, List<String> jetons) {
-        this.iconPath = iconPath;
+    public Joueur(String Path, Position positionDepart, Position position, List<Color> Jetons) {
+        this.position = position;
         this.positionDepart = positionDepart;
-        this.positionBut = positionBut;
-        this.jetons = jetons;
+        this.Jetons = Jetons;
+        this.iconPath = Path; 
     }
 
-    public List<String> getJetons() {
-        return jetons;
+    public Position getPosition() {
+        return position;
     }
 
-    public void ajouterJeton(String couleur) {
-        jetons.add(couleur);
-    }
-
-    public boolean retirerJeton(String couleur) {
-        return jetons.remove(couleur);
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     public Position getPositionDepart() {
         return positionDepart;
     }
 
-    public Position getPositionBut() {
-        return positionBut;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void ajouterScore(int points) {
-        score += points;
-    }
-
-    public void incrementerToursBloqué() {
-        toursBloqué++;
-    }
-
-    public int getToursBloqué() {
-        return toursBloqué;
+    public List<Color> getJetons() {
+        return Jetons;
     }
 
     public String getIconPath() {
         return iconPath;
     }
 
-    public void setIconPath(String iconPath) {
-        this.iconPath = iconPath;
+    public void ajouterCarte(Color couleur) {
+        Jetons.add(couleur);
     }
 
-    public void reinitialiser() {
-        this.score = 0;
-        this.toursBloqué = 0;
-        this.jetons.clear();
-        System.out.println("Le joueur " + getLocalName() + " a été réinitialisé.");
+    public boolean aCarte(Color couleur) {
+        return Jetons.contains(couleur);
     }
+
+    public void retirerCarte(Color couleur) {
+        Jetons.remove(couleur);
+    }
+
+    public List<Position> getCoupPossible(Grille grille) {
+        List<Position> deplacementsPossibles = new ArrayList<>();
+        for (Position voisin : grille.getVoisins(position.getX(), position.getY())) {
+            Color couleurCase = grille.getCellColor(voisin.getX(), voisin.getY()); 
+            if (Jetons.contains(couleurCase)) {
+                deplacementsPossibles.add(voisin);
+            }
+        }
+        return deplacementsPossibles;
+    }
+
+    public boolean deplacerVers(Position nouvellePosition, Grille grille) {
+        Color couleur = grille.getCellColor(nouvellePosition.getX(), nouvellePosition.getY());
+        if (Jetons.contains(couleur)) {
+            this.position = nouvellePosition;
+            Jetons.remove(couleur);
+            return true;
+        }
+        return false;
+    }
+
 }

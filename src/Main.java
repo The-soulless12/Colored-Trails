@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -148,8 +147,9 @@ public class Main {
         int y = rand.nextInt(7);  
 
         Position positionDepart = new Position(x, y);
-        Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7)); 
-        List<String> jetons = new ArrayList<>(); 
+        Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
+        List<Color> jetons = new ArrayList<>();
+        jetons.add(Color.RED);  // Ajouter une couleur à la liste -------------------------------- TEST
 
         Joueur joueur = new Joueur(iconPath, positionDepart, positionBut, jetons);  
 

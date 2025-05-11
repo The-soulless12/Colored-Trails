@@ -64,13 +64,11 @@ public class Grille extends JPanel {
     }
     
     public void dessinerJoueurs() {
-        // Cette méthode doit être appelée après que la grille est rendue visible
         for (Joueur joueur : joueurs) {
             Position pos = joueur.getPositionDepart();
             if (pos == null) continue;
             
             try {
-                // On vérifie que les coordonnées sont valides
                 if (pos.getX() >= 0 && pos.getX() < cells.length && 
                     pos.getY() >= 0 && pos.getY() < cells[0].length) {
                     
@@ -163,4 +161,35 @@ public class Grille extends JPanel {
             g2.dispose();
         }
     }
+
+    // Donne les voisins valides (haut, bas, gauche, droite)
+    public List<Position> getVoisins(int x, int y) {
+        List<Position> voisins = new ArrayList<>();
+        int rows = cells.length;
+        int cols = cells[0].length;
+
+        int[][] directions = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+
+        for (int[] dir : directions) {
+            int nx = x + dir[0];
+            int ny = y + dir[1];
+
+            if (nx >= 0 && nx < rows && ny >= 0 && ny < cols) {
+                voisins.add(new Position(nx, ny));
+            }
+        }
+
+        return voisins;
+    }
+
+    // Retourne la couleur de la case à une position donnée
+    public Color getCouleurCase(Position pos) {
+        return cells[pos.getX()][pos.getY()].getFillColor();
+    }
+
+    // Retourne la couleur de la case de destination (ou d'un mouvement entre deux cases)
+    public Color getCouleurCaseVers(Position from, Position to) {
+        return getCouleurCase(to);
+    }
+
 }
