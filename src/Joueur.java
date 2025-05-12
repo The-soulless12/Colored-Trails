@@ -3,7 +3,7 @@ import java.awt.Color;
 
 public class Joueur {
     private Position position;
-    private Position positionDepart;
+    private Position positionArrivee;
     private List<Color> Jetons;
     private String iconPath;
 
@@ -11,9 +11,9 @@ public class Joueur {
         this.iconPath = iconPath;
     }
 
-    public Joueur(String Path, Position positionDepart, Position position, List<Color> Jetons) {
+    public Joueur(String Path, Position position, Position positionArrivee, List<Color> Jetons) {
         this.position = position;
-        this.positionDepart = positionDepart;
+        this.positionArrivee = positionArrivee;
         this.Jetons = Jetons;
         this.iconPath = Path; 
     }
@@ -24,10 +24,6 @@ public class Joueur {
 
     public void setPosition(Position position) {
         this.position = position;
-    }
-
-    public Position getPositionDepart() {
-        return positionDepart;
     }
 
     public List<Color> getJetons() {
@@ -71,4 +67,11 @@ public class Joueur {
         return false;
     }
 
+    public Position getPositionArrivee() {
+        return positionArrivee;
+    }
+
+    public void setPositionArrivee(Position positionArrivee) {
+        this.positionArrivee = positionArrivee;
+    }
 }

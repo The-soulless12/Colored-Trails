@@ -19,8 +19,8 @@ public class Main {
         Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png"), joueur2 = createRandomJoueur("Images/agent" + b + ".png");
         
         // Vérification que les positions ne sont pas identiques
-        while (joueur1.getPositionDepart().getX() == joueur2.getPositionDepart().getX() && 
-               joueur1.getPositionDepart().getY() == joueur2.getPositionDepart().getY()) {
+        while (joueur1.getPosition().getX() == joueur2.getPosition().getX() && 
+               joueur1.getPosition().getY() == joueur2.getPosition().getY()) {
             joueur2 = createRandomJoueur("Images/agent2.png");
         }
         grid.ajouterJoueur(joueur1);  
@@ -52,16 +52,17 @@ public class Main {
             JDialog settingsDialog = new JDialog(frame, "Paramètres", true);
             settingsDialog.setSize(500, 300);
             settingsDialog.setLayout(new BorderLayout());
-            String[] columnNames = {"Agent", "Numéro Agent", "Position Départ", "Nombre de Cartes"};
-            Object[][] data = new Object[grid.getJoueurs().size()][4];
+            String[] columnNames = {"Agent", "N° Agent", "Position", "But", "Nbre Jetons"};
+            Object[][] data = new Object[grid.getJoueurs().size()][5];
 
             int i = 0;
             for (Joueur joueur : grid.getJoueurs()) {
                 ImageIcon iconJoueur = new ImageIcon(new ImageIcon(joueur.getIconPath()).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
                 data[i][0] = iconJoueur;
                 data[i][1] = i+1;
-                data[i][2] = "(" + joueur.getPositionDepart().getX() + ", " + joueur.getPositionDepart().getY() + ")";
-                data[i][3] = joueur.getJetons().size();
+                data[i][2] = "(" + joueur.getPosition().getX() + ", " + joueur.getPosition().getY() + ")";
+                data[i][3] = "(" + joueur.getPositionArrivee().getX() + ", " + joueur.getPositionArrivee().getY() + ")";
+                data[i][4] = joueur.getJetons().size();
                 i++;
             }
 
@@ -182,7 +183,7 @@ public class Main {
         int x = rand.nextInt(5);  
         int y = rand.nextInt(7);  
 
-        Position positionDepart = new Position(x, y);
+        Position position = new Position(x, y);
         Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
         
         Color[] pastelColors = Grille.getPastelcolors();
@@ -194,7 +195,7 @@ public class Main {
             jetons.add(randomColor);
         }
 
-        return new Joueur(iconPath, positionDepart, positionBut, jetons);
+        return new Joueur(iconPath, position, positionBut, jetons);
     }
 
     static class RoundedButton extends JButton {

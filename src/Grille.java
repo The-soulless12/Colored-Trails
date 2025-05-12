@@ -65,7 +65,7 @@ public class Grille extends JPanel {
     
     public void dessinerJoueurs() {
         for (Joueur joueur : joueurs) {
-            Position pos = joueur.getPositionDepart();
+            Position pos = joueur.getPosition();
             if (pos == null) continue;
             
             try {
