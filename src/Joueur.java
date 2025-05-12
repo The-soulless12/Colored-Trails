@@ -1,7 +1,14 @@
 import java.util.*;
 import java.awt.Color;
+
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
 public class Joueur extends Agent {
@@ -15,6 +22,10 @@ public class Joueur extends Agent {
         this.positionArrivee = positionArrivee;
         Jetons = jetons;
         this.iconPath = iconPath;
+    }
+
+    public Joueur() {
+        super();
     }
 
     public Position getPosition() {
@@ -86,6 +97,44 @@ public class Joueur extends Agent {
         return false;
     }
 
+    // S'enregistrer auprès du Directory Facilitator (DF)
+    private void registerWithDF() {
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+        
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("colored-trails-player");
+        sd.setName(getLocalName() + "-service");
+        dfd.addServices(sd);
+        
+        try {
+            DFService.register(this, dfd);
+            System.out.println(getLocalName() + " s'est enregistré auprès du DF");
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Trouver tous les agents du jeu
+    private AID[] findAllPlayers() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("colored-trails-player");
+        template.addServices(sd);
+        
+        try {
+            DFAgentDescription[] results = DFService.search(this, template);
+            AID[] agents = new AID[results.length];
+            for (int i = 0; i < results.length; i++) {
+                agents[i] = results[i].getName();
+            }
+            return agents;
+        } catch (FIPAException e) {
+            e.printStackTrace();
+            return new AID[0];
+        }
+    }
+
     @Override
     protected void setup() {
         Object[] args = getArguments();
@@ -98,6 +147,7 @@ public class Joueur extends Agent {
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
             this.Jetons = couleurs;
+            System.out.println(getLocalName() + " a reçu ses arguments !");
         } else {
             System.out.println(getLocalName() + " a reçu des arguments insuffisants.");
             this.Jetons = new ArrayList<>();
@@ -106,22 +156,74 @@ public class Joueur extends Agent {
         }
 
         System.out.println(getLocalName() + " prêt pour le jeu!");
+        
+        // S'enregistrer auprès du DF
+        registerWithDF();
+        
+        // Comportement pour envoyer un salut à tous les agents au démarrage
+        addBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                // Petite pause pour s'assurer que tous les agents sont prêts et enregistrés
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                
+                // Trouver tous les agents joueurs
+                AID[] allPlayers = findAllPlayers();
+                
+                // Créer et envoyer le message de salutation en broadcast
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                for (AID agent : allPlayers) {
+                    // Ne pas s'envoyer le message à soi-même
+                    if (!agent.equals(getAID())) {
+                        msg.addReceiver(agent);
+                    }
+                }
+                
+                msg.setContent("Bonjour à tous ! Je suis " + getLocalName() + " et je suis prêt à jouer !");
+                send(msg);
+                System.out.println(getLocalName() + " a envoyé une salutation à tous les agents");
+            }
+        });
 
+        // Comportement cyclique pour recevoir les messages
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
                 ACLMessage msg = receive();
                 if (msg != null) {
-                    System.out.println(getLocalName() + " a reçu : " + msg.getContent());
+                    System.out.println(getLocalName() + " a reçu un message de " + msg.getSender().getLocalName() + ": " + msg.getContent());
 
+                    // Si c'est une proposition d'échange
                     if (msg.getContent().equals("propose échange")) {
                         System.out.println("Échange proposé à " + getLocalName());
-                    }
 
+                        // Envoie un message de réponse
+                        ACLMessage replyMsg = new ACLMessage(ACLMessage.INFORM);
+                        replyMsg.addReceiver(msg.getSender());
+                        replyMsg.setContent("Je considère votre proposition d'échange.");
+                        send(replyMsg);
+                    }
                 } else {
                     block();
                 }
             }
         });
+    }
+    
+    @Override
+    protected void takeDown() {
+        // Se désenregistrer du DF lorsque l'agent se termine
+        try {
+            DFService.deregister(this);
+            System.out.println(getLocalName() + " s'est désenregistré du DF");
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+        
+        System.out.println(getLocalName() + " a terminé.");
     }
 }

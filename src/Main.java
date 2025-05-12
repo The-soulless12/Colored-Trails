@@ -4,6 +4,11 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.core.Runtime;
+import jade.wrapper.*;
+
 public class Main {
     public static void main(String[] args) {
         JFrame frame = new JFrame("COLORED TRAILS");
@@ -15,16 +20,51 @@ public class Main {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 20, 20, 20)); // Les marges de l'écran d'accueil
 
         Grille grid = new Grille(5, 7);
-        int a = new Random().nextInt(13) + 1, b; while((b = new Random().nextInt(13) + 1) == a);
-        Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png"), joueur2 = createRandomJoueur("Images/agent" + b + ".png");
-        
-        // Vérification que les positions ne sont pas identiques
-        while (joueur1.getPosition().getX() == joueur2.getPosition().getX() && 
-               joueur1.getPosition().getY() == joueur2.getPosition().getY()) {
-            joueur2 = createRandomJoueur("Images/agent2.png");
+        Random rand = new Random();
+        int a = rand.nextInt(13) + 1;
+        int b;
+        do { b = rand.nextInt(13) + 1; } while (b == a);
+        int c;
+        do { c = rand.nextInt(13) + 1; } while (c == a || c == b);
+
+        Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png");
+        Joueur joueur2 = createRandomJoueur("Images/agent" + b + ".png");
+
+        while (joueur1.getPosition().equals(joueur2.getPosition())) {
+            joueur2 = createRandomJoueur("Images/agent" + b + ".png");
         }
+
+        Joueur joueur3 = createRandomJoueur("Images/agent" + c + ".png");
+        while (
+            joueur3.getPosition().equals(joueur1.getPosition()) || 
+            joueur3.getPosition().equals(joueur2.getPosition())
+        ) {
+            joueur3 = createRandomJoueur("Images/agent" + c + ".png");
+        }
+
         grid.ajouterJoueur(joueur1);  
         grid.ajouterJoueur(joueur2);
+        grid.ajouterJoueur(joueur3);
+
+        // Initialisation de la plateforme JADE
+        Runtime rt = Runtime.instance();
+        Profile profile = new ProfileImpl();
+        ContainerController mainContainer = rt.createMainContainer(profile);
+
+        try {
+            List<Joueur> joueurs = grid.getJoueurs();
+            for (int i = 0; i < joueurs.size(); i++) {
+                Joueur joueur = joueurs.get(i);
+                AgentController agent = mainContainer.createNewAgent(
+                    "Agent" + (i + 1),
+                    "Joueur",
+                    new Object[]{joueur.getIconPath(), joueur.getPosition(), joueur.getPositionArrivee(), joueur.getJetons()}
+                );
+                agent.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         Color buttonColor = grid.getRandomColorUsed();
         Color lightBackground = lightenColor(buttonColor, 0.6f);
