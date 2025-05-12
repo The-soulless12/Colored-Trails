@@ -74,7 +74,7 @@ public class Main {
 
                 @Override
                 public boolean isCellEditable(int row, int column) {
-                    return column == 0; // Seule la colonne image est éditable
+                    return false; 
                 }
             });
             table.setFont(new Font("Monospaced", Font.PLAIN, 12));
