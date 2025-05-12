@@ -195,4 +195,8 @@ public class Grille extends JPanel {
     public List<Joueur> getJoueurs() {
         return joueurs;
     }
+
+    public static Color[] getPastelcolors() {
+        return pastelColors;
+    }
 }

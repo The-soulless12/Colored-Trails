@@ -184,13 +184,17 @@ public class Main {
 
         Position positionDepart = new Position(x, y);
         Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
+        
+        Color[] pastelColors = Grille.getPastelcolors();
         List<Color> jetons = new ArrayList<>();
-         // Ajouter une couleur à la liste -------------------------------- BOUCLE WA9IL psq machi ga3 same
-        jetons.add(Color.RED); 
 
-        Joueur joueur = new Joueur(iconPath, positionDepart, positionBut, jetons);  
+        int nombreJetons = rand.nextInt(5) + 2; 
+        for (int i = 0; i < nombreJetons; i++) {
+            Color randomColor = pastelColors[rand.nextInt(pastelColors.length)];
+            jetons.add(randomColor);
+        }
 
-        return joueur;
+        return new Joueur(iconPath, positionDepart, positionBut, jetons);
     }
 
     static class RoundedButton extends JButton {
