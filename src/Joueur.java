@@ -97,7 +97,6 @@ public class Joueur extends Agent {
         return false;
     }
 
-    // S'enregistrer auprès du Directory Facilitator (DF)
     private void registerWithDF() {
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
@@ -115,7 +114,6 @@ public class Joueur extends Agent {
         }
     }
     
-    // Trouver tous les agents du jeu
     private AID[] findAllPlayers() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -147,7 +145,6 @@ public class Joueur extends Agent {
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
             this.Jetons = couleurs;
-            System.out.println(getLocalName() + " a reçu ses arguments !");
         } else {
             System.out.println(getLocalName() + " a reçu des arguments insuffisants.");
             this.Jetons = new ArrayList<>();
@@ -157,27 +154,21 @@ public class Joueur extends Agent {
 
         System.out.println(getLocalName() + " prêt pour le jeu!");
         
-        // S'enregistrer auprès du DF
         registerWithDF();
         
-        // Comportement pour envoyer un salut à tous les agents au démarrage
         addBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
-                // Petite pause pour s'assurer que tous les agents sont prêts et enregistrés
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 
-                // Trouver tous les agents joueurs
                 AID[] allPlayers = findAllPlayers();
                 
-                // Créer et envoyer le message de salutation en broadcast
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                 for (AID agent : allPlayers) {
-                    // Ne pas s'envoyer le message à soi-même
                     if (!agent.equals(getAID())) {
                         msg.addReceiver(agent);
                     }
@@ -216,7 +207,6 @@ public class Joueur extends Agent {
     
     @Override
     protected void takeDown() {
-        // Se désenregistrer du DF lorsque l'agent se termine
         try {
             DFService.deregister(this);
             System.out.println(getLocalName() + " s'est désenregistré du DF");
