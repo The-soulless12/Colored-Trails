@@ -25,6 +25,7 @@ public class Joueur extends Agent {
         Jetons = jetons;
         this.iconPath = iconPath;
         this.NombreBlocage = 0;
+        this.calculerCheminVersBut();
     }
 
     public Joueur() {
@@ -119,7 +120,6 @@ public class Joueur extends Agent {
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
             this.Jetons = couleurs;
-            calculerCheminVersBut();
         } else {
             System.out.println(getLocalName() + " a reçu des arguments insuffisants.");
             this.Jetons = new ArrayList<>();
@@ -243,6 +243,10 @@ public class Joueur extends Agent {
 
     public void addJeton(Color jeton) {
         this.Jetons.add(jeton);
+    }
+
+    public void setJetons(List<Color> jetons) {
+        this.Jetons = jetons;
     }
 
     public void move(Position newPosition) {

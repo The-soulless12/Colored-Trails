@@ -232,13 +232,19 @@ public class Main {
         Color[] pastelColors = Grille.getPastelcolors();
         List<Color> jetons = new ArrayList<>();
 
-        int nombreJetons = rand.nextInt(5) + 2; 
+        Joueur joueur = new Joueur(iconPath, position, positionBut, jetons);
+
+        int tailleChemin = joueur.getChemin().size();
+        int pourcentageBonus = 10;
+        int bonus = (int) Math.ceil(tailleChemin * (pourcentageBonus / 100.0));
+        int nombreJetons = tailleChemin + bonus; 
         for (int i = 0; i < nombreJetons; i++) {
             Color randomColor = pastelColors[rand.nextInt(pastelColors.length)];
             jetons.add(randomColor);
         }
+        joueur.setJetons(jetons);
 
-        return new Joueur(iconPath, position, positionBut, jetons);
+        return  joueur;
     }
 
     static class RoundedButton extends JButton {
