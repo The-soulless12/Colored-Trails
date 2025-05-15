@@ -163,7 +163,10 @@ public class Main {
         logoutButton.setContentAreaFilled(false);
         logoutButton.setBorderPainted(false);
         logoutButton.setMargin(new Insets(0, 0, 0, 0));
-        logoutButton.addActionListener(e -> frame.dispose());
+        logoutButton.addActionListener(e -> {
+            frame.dispose();         
+            System.exit(0);          
+        });
         logoutButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         logoutButton.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
