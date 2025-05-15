@@ -67,7 +67,7 @@ public class Main {
         }
 
         Color buttonColor = grid.getRandomColorUsed();
-        Color lightBackground = lightenColor(buttonColor, 0.6f);
+        Color lightBackground = CouleurPastel(buttonColor, 0.6f);
         mainPanel.setBackground(lightBackground);
         mainPanel.setOpaque(true);
 
@@ -214,7 +214,7 @@ public class Main {
         });
     }
 
-    public static Color lightenColor(Color color, float factor) {
+    public static Color CouleurPastel(Color color, float factor) {
         int r = Math.min(255, (int)(color.getRed() + (255 - color.getRed()) * factor));
         int g = Math.min(255, (int)(color.getGreen() + (255 - color.getGreen()) * factor));
         int b = Math.min(255, (int)(color.getBlue() + (255 - color.getBlue()) * factor));

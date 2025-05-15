@@ -16,75 +16,49 @@ public class Joueur extends Agent {
     private Position positionArrivee;
     private List<Color> Jetons;
     private String iconPath;
+    private Integer NombreBlocage;
+    private List<Position> chemin;
 
     public Joueur(String iconPath, Position position, Position positionArrivee, List<Color> jetons) {
         this.position = position;
         this.positionArrivee = positionArrivee;
         Jetons = jetons;
         this.iconPath = iconPath;
+        this.NombreBlocage = 0;
     }
 
     public Joueur() {
         super();
     }
 
-    public Position getPosition() {
-        return position;
-    }
+    public void calculerCheminVersBut() {
+        chemin = new ArrayList<>();
+        int x = position.getX();
+        int y = position.getY();
+        int butX = positionArrivee.getX();
+        int butY = positionArrivee.getY();
 
-    public void setPosition(Position position) {
-        this.position = position;
-    }
+        while (x != butX && y != butY) {
+            if (x < butX) x++;
+            else if (x > butX) x--;
 
-    public Position getPositionArrivee() {
-        return positionArrivee;
-    }
+            if (y < butY) y++;
+            else if (y > butY) y--;
 
-    public void setPositionArrivee(Position positionArrivee) {
-        this.positionArrivee = positionArrivee;
-    }
-
-    public List<Color> getJetons() {
-        return Jetons;
-    }
-
-    public void setIconPath(String iconPath) {
-        this.iconPath = iconPath;
-    }
-
-    public String getIconPath() {
-        return iconPath;
-    }
-
-    public void ajouterCarte(Color couleur) {
-        Jetons.add(couleur);
-    }
-
-    public boolean aCarte(Color couleur) {
-        return Jetons.contains(couleur);
-    }
-
-    public void retirerCarte(Color couleur) {
-        Jetons.remove(couleur);
-    }
-
-    public void addJeton(Color jeton) {
-        this.Jetons.add(jeton);
-    }
-
-    public void move(Position newPosition) {
-        this.position = newPosition;
-    }
-
-    public List<Position> getCoupPossible(Grille grille) {
-        List<Position> deplacementsPossibles = new ArrayList<>();
-        for (Position voisin : grille.getVoisins(position.getX(), position.getY())) {
-            Color couleurCase = grille.getCellColor(voisin.getX(), voisin.getY());
-            if (Jetons.contains(couleurCase)) {
-                deplacementsPossibles.add(voisin);
-            }
+            chemin.add(new Position(x, y));
         }
-        return deplacementsPossibles;
+
+        while (x != butX) {
+            if (x < butX) x++;
+            else x--;
+            chemin.add(new Position(x, y));
+        }
+
+        while (y != butY) {
+            if (y < butY) y++;
+            else y--;
+            chemin.add(new Position(x, y));
+        }
     }
 
     public boolean deplacerVers(Position nouvellePosition, Grille grille) {
@@ -145,6 +119,7 @@ public class Joueur extends Agent {
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
             this.Jetons = couleurs;
+            calculerCheminVersBut();
         } else {
             System.out.println(getLocalName() + " a reçu des arguments insuffisants.");
             this.Jetons = new ArrayList<>();
@@ -188,15 +163,8 @@ public class Joueur extends Agent {
                 if (msg != null) {
                     System.out.println(getLocalName() + " a reçu un message de " + msg.getSender().getLocalName() + ": " + msg.getContent());
 
-                    // Si c'est une proposition d'échange
                     if (msg.getContent().equals("propose échange")) {
-                        System.out.println("Échange proposé à " + getLocalName());
-
-                        // Envoie un message de réponse
-                        ACLMessage replyMsg = new ACLMessage(ACLMessage.INFORM);
-                        replyMsg.addReceiver(msg.getSender());
-                        replyMsg.setContent("Je considère votre proposition d'échange.");
-                        send(replyMsg);
+                        
                     }
                 } else {
                     block();
@@ -215,5 +183,69 @@ public class Joueur extends Agent {
         }
         
         System.out.println(getLocalName() + " a terminé.");
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    public Position getPositionArrivee() {
+        return positionArrivee;
+    }
+
+    public void setPositionArrivee(Position positionArrivee) {
+        this.positionArrivee = positionArrivee;
+    }
+
+    public List<Color> getJetons() {
+        return Jetons;
+    }
+
+    public Integer getNombreBlocage() {
+        return NombreBlocage;
+    }
+
+    public void setNombreBlocage(Integer nombreBlocage) {
+        NombreBlocage = nombreBlocage;
+    }
+
+    public List<Position> getChemin() {
+        return chemin;
+    }
+
+    public void setChemin(List<Position> chemin) {
+        this.chemin = chemin;
+    }
+
+    public void setIconPath(String iconPath) {
+        this.iconPath = iconPath;
+    }
+
+    public String getIconPath() {
+        return iconPath;
+    }
+
+    public void ajouterCarte(Color couleur) {
+        Jetons.add(couleur);
+    }
+
+    public boolean aCarte(Color couleur) {
+        return Jetons.contains(couleur);
+    }
+
+    public void retirerCarte(Color couleur) {
+        Jetons.remove(couleur);
+    }
+
+    public void addJeton(Color jeton) {
+        this.Jetons.add(jeton);
+    }
+
+    public void move(Position newPosition) {
+        this.position = newPosition;
     }
 }
