@@ -5,6 +5,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -19,6 +20,7 @@ public class Joueur extends Agent {
     private String iconPath;
     private Integer NombreBlocage;
     private List<CaseChemin> chemin;
+    private List<Offre> offresRecues = new ArrayList<>();
 
     public Joueur(String iconPath, Position position, Position positionArrivee, List<Color> jetons, Grille grille) {
         this.position = position;
@@ -34,9 +36,46 @@ public class Joueur extends Agent {
         super();
     }
 
-    public void effectuerUnPas() {
+    private void traiterOffres() {
+        for (Offre offre : offresRecues) {
+            // Si on a le jeton demandé par le proposeur, on accepte
+            if (Jetons.contains(offre.getCouleurDemandeeRetour())) {
+                Jetons.remove(offre.getCouleurDemandeeRetour());
+
+                // On envoie le jeton demandé à l'agent proposeur
+                ACLMessage accept = new ACLMessage(ACLMessage.INFORM);
+                accept.addReceiver(new AID(offre.getProposeur(), AID.ISLOCALNAME));
+                accept.setContent("JETON:" + 
+                        offre.getCouleurDemandee().getRGB() + ":" + 
+                        offre.getCouleurDemandeeRetour().getRGB() + ":" + 
+                        getLocalName() + ":" + 
+                        offre.getProposeur());
+                send(accept);
+                
+                System.out.println(getLocalName() + " envoie " + offre.getCouleurDemandeeRetour() + " à " + offre.getProposeur() + " (en attente de " + offre.getCouleurDemandee() + ")");
+                offresRecues.clear(); // On ne traite qu'une seule offre
+                return;
+            }
+        }
+
+        System.out.println(getLocalName() + " n'a pu satisfaire aucune offre reçue.");
+        this.NombreBlocage ++; // on est donc bloqué
+        offresRecues.clear();
+    }
+
+    public Color choisirCouleurAechanger(Color couleurDemandee) {
+        // Pour le moment, le proposeur va juste choisir une couleur aléatoire parmi celles qu'il ne possède pas
+        for (Color c : Grille.getPastelcolors()) {
+            if (!Jetons.contains(c) || !c.equals(couleurDemandee)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public void effectuerUnPas(Boolean firsttime) {
         if (chemin.isEmpty()) {
-            System.out.println(getLocalName() + " a terminé son chemin.");
+            System.out.println(getLocalName() + " a atteint son but.");
             return;
         }
 
@@ -48,10 +87,15 @@ public class Joueur extends Agent {
             Jetons.remove(couleurCase);
             chemin.remove(0);
 
-            System.out.println(getLocalName() + " avance à la position " + position + " (couleur : " + couleurCase + ")");
+            System.out.println(getLocalName() + " avance vers la position " + position);
         } else {
-            System.out.println(getLocalName() + " : SOS pour la couleur " + couleurCase);
-            envoyerSOS(couleurCase);
+            if (firsttime == true) {
+                System.out.println(getLocalName() + " envoie un SOS demandant la couleur " + couleurCase);
+                envoyerSOS(couleurCase);
+            } else {
+                System.out.println(getLocalName() + " je suis bloqué R.I.P !");
+                this.NombreBlocage ++;
+            }
         }
     }
 
@@ -130,6 +174,7 @@ public class Joueur extends Agent {
             this.position = (Position) args[1];
             this.positionArrivee = (Position) args[2];
             this.grille = (Grille) args[4];
+            this.NombreBlocage = 0;
             this.chemin = new ArrayList<>();
             this.calculerCheminVersBut();
 
@@ -143,7 +188,7 @@ public class Joueur extends Agent {
             this.positionArrivee = new Position(0, 0);
         }
 
-        System.out.println(getLocalName() + " prêt pour le jeu!");
+        System.out.println(getLocalName() + " prêt pour le jeu! Mes jetons sont : " + this.Jetons);
         
         registerWithDF();
         
@@ -172,13 +217,84 @@ public class Joueur extends Agent {
             public void action() {
                 ACLMessage msg = receive();
                 if (msg != null) {
-                    if (msg.getContent().equals("jour")) {
-                        effectuerUnPas();
+                    if (msg.getContent().equals("GO")) {
+                        Boolean firsttime = true;
+                        effectuerUnPas(firsttime);
                     }
-                    else if (msg.getContent().startsWith("SOS:")) {
+                    if (msg.getContent().startsWith("SOS:")) {
                         int rgb = Integer.parseInt(msg.getContent().split(":")[1]);
                         Color couleurDemandee = new Color(rgb);
-                        System.out.println(getLocalName() + " a reçu un SOS pour la couleur " + couleurDemandee);
+                        String demandeur = msg.getSender().getLocalName();
+                        
+                        // Si l'agent a la couleur demandee, alors il répond
+                        if (Jetons.contains(couleurDemandee)) {
+                            Color couleurDemandeeEnRetour = choisirCouleurAechanger(couleurDemandee);
+                            
+                            if (couleurDemandeeEnRetour != null) {
+                                ACLMessage offre = new ACLMessage(ACLMessage.PROPOSE);
+                                offre.setContent("OFFRE:" + couleurDemandee.getRGB() + ":" + couleurDemandeeEnRetour.getRGB() + " pour " + demandeur);
+                                offre.addReceiver(new AID(demandeur, AID.ISLOCALNAME));
+                                send(offre);
+                                System.out.println(getLocalName() + " propose : " + couleurDemandee + " contre " + couleurDemandeeEnRetour + " pour " + demandeur);
+                            }
+                        }
+                    }
+                    if (msg.getPerformative() == ACLMessage.PROPOSE && msg.getContent().startsWith("OFFRE:")) {
+                        String[] parts = msg.getContent().split(":| pour ");
+                        Color couleurDemandee = new Color(Integer.parseInt(parts[1]));
+                        Color couleurDemandeeEnRetour = new Color(Integer.parseInt(parts[2]));
+                        String demandeur = parts[3];
+                        String proposeur = msg.getSender().getLocalName();
+
+                        if (demandeur.equals(getLocalName())) {
+                            Offre offre = new Offre(demandeur, proposeur, couleurDemandee, couleurDemandeeEnRetour);
+                            offresRecues.add(offre);
+                            if (offresRecues.size() == 1) {
+                                addBehaviour(new WakerBehaviour(myAgent, 500) { // attend 500 ms
+                                    @Override
+                                    protected void onWake() {
+                                        traiterOffres();
+                                    }
+                                });
+                            }
+                        }
+
+                    }
+                    if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("JETON:")) {
+                        String[] parts = msg.getContent().split(":");
+                        Color couleurReçue = new Color(Integer.parseInt(parts[2])); // La couleur demandee en retour
+                        Color couleurAPromettre = new Color(Integer.parseInt(parts[1])); // La couleur demandee au début
+                        String demandeur = parts[3];
+                        String proposeur = parts[4];
+
+                        if (proposeur.equals(getLocalName())) {
+                            Jetons.add(couleurReçue); // On ajoute la couleur reçue
+                            System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + demandeur);
+
+                            // On envoie maintenant la couleur promise (offerte dans l'échange)
+                            if (Jetons.contains(couleurAPromettre)) {
+                                Jetons.remove(couleurAPromettre);
+                                ACLMessage retour = new ACLMessage(ACLMessage.INFORM);
+                                retour.addReceiver(new AID(demandeur, AID.ISLOCALNAME));
+                                retour.setContent("JETON_RETOUR:" + couleurAPromettre.getRGB() + ":" + getLocalName());
+                                send(retour);
+
+                                System.out.println(getLocalName() + " envoie " + couleurAPromettre + " à " + demandeur + " pour conclure l’échange");
+                            } else {
+                                System.out.println(getLocalName() + " devait envoyer " + couleurAPromettre + " mais ne l’a plus !");
+                            }
+                        }
+                    }
+                    if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("JETON_RETOUR:")) {
+                        String[] parts = msg.getContent().split(":");
+                        Color couleurReçue = new Color(Integer.parseInt(parts[1]));
+                        String proposeur = parts[2];
+
+                        Jetons.add(couleurReçue);
+                        System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
+                        
+                        Boolean firsttime = false;
+                        effectuerUnPas(firsttime); 
                     }
                 } else {
                     block();
@@ -280,5 +396,13 @@ public class Joueur extends Agent {
 
     public void move(Position newPosition) {
         this.position = newPosition;
+    }
+
+    public List<Offre> getOffresRecues() {
+        return offresRecues;
+    }
+
+    public void setOffresRecues(List<Offre> offresRecues) {
+        this.offresRecues = offresRecues;
     }
 }

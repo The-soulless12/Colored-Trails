@@ -23,7 +23,7 @@ public class Master extends Agent {
         }
 
         ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-        message.setContent("jour");
+        message.setContent("GO");
         for (String name : agentNames) {
             message.addReceiver(new AID(name, AID.ISLOCALNAME));
         }
