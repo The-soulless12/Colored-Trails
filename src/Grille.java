@@ -93,19 +93,6 @@ public class Grille extends JPanel {
         }
     }
 
-    public Color getCellColor(int x, int y) {
-        return cells[x][y].getFillColor();
-    }
-
-    public RoundedCellPanel getCell(int x, int y) {
-        return cells[x][y];
-    }
-
-    public Color getRandomColorUsed() {
-        Random rand = new Random();
-        return pastelColors[rand.nextInt(pastelColors.length)];
-    }
-
     static class RoundedPanel extends JPanel {
         private final int arc;
         private final Color backgroundColor;
@@ -168,5 +155,18 @@ public class Grille extends JPanel {
 
     public static Color[] getPastelcolors() {
         return pastelColors;
+    }
+
+        public Color getCellColor(int x, int y) {
+        return cells[x][y].getFillColor();
+    }
+
+    public RoundedCellPanel getCell(int x, int y) {
+        return cells[x][y];
+    }
+
+    public Color getRandomColorUsed() {
+        Random rand = new Random();
+        return pastelColors[rand.nextInt(pastelColors.length)];
     }
 }

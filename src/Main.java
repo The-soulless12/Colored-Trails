@@ -3,6 +3,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 
 import jade.core.Profile;
@@ -12,6 +13,13 @@ import jade.wrapper.*;
 
 public class Main {
     public static void main(String[] args) {
+        // Réduit les logs JADE à WARNING uniquement
+        Logger jadeLogger = Logger.getLogger("jade");
+        jadeLogger.setLevel(Level.WARNING);
+        for (Handler handler : jadeLogger.getHandlers()) {
+            handler.setLevel(Level.WARNING);
+        }
+
         JFrame frame = new JFrame("COLORED TRAILS");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
@@ -20,6 +28,7 @@ public class Main {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(2, 20, 20, 20)); // Les marges de l'écran d'accueil
 
+        // Création de la grille et des agents 
         Grille grid = new Grille(5, 7);
         Random rand = new Random();
         int a = rand.nextInt(13) + 1;
@@ -28,29 +37,17 @@ public class Main {
         int c;
         do { c = rand.nextInt(13) + 1; } while (c == a || c == b);
 
-        Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png", grid);
-        Joueur joueur2 = createRandomJoueur("Images/agent" + b + ".png", grid);
+        List<Position> positionsOccupees = new ArrayList<>();
 
-        while (joueur1.getPosition().equals(joueur2.getPosition())) {
-            joueur2 = createRandomJoueur("Images/agent" + b + ".png", grid);
-        }
-
-        Joueur joueur3 = createRandomJoueur("Images/agent" + c + ".png", grid);
-        while (
-            joueur3.getPosition().equals(joueur1.getPosition()) || 
-            joueur3.getPosition().equals(joueur2.getPosition())
-        ) {
-            joueur3 = createRandomJoueur("Images/agent" + c + ".png", grid);
-        }
-
-        grid.ajouterJoueur(joueur1);  
-        grid.ajouterJoueur(joueur2);
-        grid.ajouterJoueur(joueur3);
+        createRandomJoueur("Images/agent" + a + ".png", grid, positionsOccupees);
+        createRandomJoueur("Images/agent" + b + ".png", grid, positionsOccupees);
+        createRandomJoueur("Images/agent" + c + ".png", grid, positionsOccupees);
 
         // Initialisation de la plateforme JADE
         Runtime rt = Runtime.instance();
         Profile profile = new ProfileImpl();
         ContainerController mainContainer = rt.createMainContainer(profile);
+        List<AgentController> agentsControllers = new ArrayList<>();
 
         try {
             List<Joueur> joueurs = grid.getJoueurs();
@@ -59,8 +56,9 @@ public class Main {
                 AgentController agent = mainContainer.createNewAgent(
                     "Agent" + (i + 1),
                     "Joueur",
-                    new Object[]{joueur.getIconPath(), joueur.getPosition(), joueur.getPositionArrivee(), joueur.getJetons()}
+                    new Object[]{joueur.getIconPath(), joueur.getPosition(), joueur.getPositionArrivee(), joueur.getJetons(), grid}
                 );
+                agentsControllers.add(agent);
                 agent.start();
             }
         } catch (Exception e) {
@@ -193,6 +191,19 @@ public class Main {
         startButton.setPreferredSize(new Dimension(120, 40));
         startButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ribbon2.add(startButton);
+        startButton.addActionListener(e -> {
+            try {
+                System.out.println("Le bouton a été cliqué");
+                List<String> names = new ArrayList<>();
+                for (int i = 0; i < agentsControllers.size(); i++) {
+                    names.add("Agent" + (i + 1));
+                }
+                AgentController controller = mainContainer.createNewAgent("Master", "Master", new Object[]{names});
+                controller.start();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
         // Ruban 03 : Espace vide
         JPanel ribbon3 = new JPanel();
@@ -222,12 +233,18 @@ public class Main {
         return new Color(r, g, b);
     }
 
-    public static Joueur createRandomJoueur(String iconPath, Grille grille) {
+    public static Joueur createRandomJoueur(String iconPath, Grille grille, List<Position> positionsOccupees) {
         Random rand = new Random();
-        int x = rand.nextInt(5);  
-        int y = rand.nextInt(7);  
+        Position position;
 
-        Position position = new Position(x, y);
+        // On génère une position non occupée
+        do {
+            int x = rand.nextInt(5);
+            int y = rand.nextInt(7);
+            position = new Position(x, y);
+        } while (positionsOccupees.contains(position));
+        positionsOccupees.add(position);
+
         Position positionBut;
         // Cette boucle existe pour éviter d'avoir des chemins de longueur 1 ou 2
         do {
@@ -243,11 +260,10 @@ public class Main {
         int bonus = (int) Math.ceil(tailleChemin * (pourcentageBonus / 100.0));
         int nombreJetons = tailleChemin + bonus;
         
-        // Récupération des couleurs du chemin
+        // On complique la tâche aux agents en ne leur donnant pas les jetons dont ils ont besoin
         Set<Color> couleursChemin = chemin.stream()
             .map(CaseChemin::getCouleur)
             .collect(Collectors.toSet());
-        // Choisir une couleur à exclure (parmi celles du chemin)
         Color couleurExclue = couleursChemin.stream()
             .skip(rand.nextInt(couleursChemin.size()))
             .findFirst()
@@ -261,7 +277,8 @@ public class Main {
         }
         joueur.setJetons(jetons);
 
-        return  joueur;
+        grille.ajouterJoueur(joueur);
+        return joueur;
     }
 
     static class RoundedButton extends JButton {

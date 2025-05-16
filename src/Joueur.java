@@ -34,6 +34,41 @@ public class Joueur extends Agent {
         super();
     }
 
+    public void effectuerUnPas() {
+        if (chemin.isEmpty()) {
+            System.out.println(getLocalName() + " a terminé son chemin.");
+            return;
+        }
+
+        CaseChemin prochaineCase = chemin.get(0);
+        Color couleurCase = prochaineCase.getCouleur();
+
+        if (Jetons.contains(couleurCase)) {
+            position = new Position(prochaineCase.getX(), prochaineCase.getY());
+            Jetons.remove(couleurCase);
+            chemin.remove(0);
+
+            System.out.println(getLocalName() + " avance à la position " + position + " (couleur : " + couleurCase + ")");
+        } else {
+            System.out.println(getLocalName() + " : SOS pour la couleur " + couleurCase);
+            envoyerSOS(couleurCase);
+        }
+    }
+
+    public void envoyerSOS(Color couleurManquante) {
+        AID[] joueurs = findAllPlayers();
+        ACLMessage sos = new ACLMessage(ACLMessage.INFORM);
+        sos.setContent("SOS:" + couleurManquante.getRGB());
+
+        for (AID agent : joueurs) {
+            if (!agent.equals(getAID())) {
+                sos.addReceiver(agent);
+            }
+        }
+
+        send(sos);
+    }
+
     public void calculerCheminVersBut() {
         chemin = new ArrayList<>();
         int x = position.getX();
@@ -66,16 +101,6 @@ public class Joueur extends Agent {
             chemin.add(new CaseChemin(x, y, c));
         }
     }
-
-    public boolean deplacerVers(Position nouvellePosition, Grille grille) {
-        Color couleur = grille.getCellColor(nouvellePosition.getX(), nouvellePosition.getY());
-        if (Jetons.contains(couleur)) {
-            this.position = nouvellePosition;
-            Jetons.remove(couleur);
-            return true;
-        }
-        return false;
-    }
     
     private AID[] findAllPlayers() {
         DFAgentDescription template = new DFAgentDescription();
@@ -99,11 +124,14 @@ public class Joueur extends Agent {
     @Override
     protected void setup() {
         Object[] args = getArguments();
-
-        if (args != null && args.length >= 4) {
+        
+        if (args != null && args.length >= 5) {
             this.iconPath = (String) args[0];
             this.position = (Position) args[1];
             this.positionArrivee = (Position) args[2];
+            this.grille = (Grille) args[4];
+            this.chemin = new ArrayList<>();
+            this.calculerCheminVersBut();
 
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
@@ -136,10 +164,6 @@ public class Joueur extends Agent {
                         msg.addReceiver(agent);
                     }
                 }
-                
-                msg.setContent("Bonjour à tous ! Je suis " + getLocalName() + " et je suis prêt à jouer !");
-                send(msg);
-                System.out.println(getLocalName() + " a envoyé une salutation à tous les agents");
             }
         });
 
@@ -148,10 +172,13 @@ public class Joueur extends Agent {
             public void action() {
                 ACLMessage msg = receive();
                 if (msg != null) {
-                    System.out.println(getLocalName() + " a reçu un message de " + msg.getSender().getLocalName() + ": " + msg.getContent());
-
-                    if (msg.getContent().equals("propose échange")) {
-                        
+                    if (msg.getContent().equals("jour")) {
+                        effectuerUnPas();
+                    }
+                    else if (msg.getContent().startsWith("SOS:")) {
+                        int rgb = Integer.parseInt(msg.getContent().split(":")[1]);
+                        Color couleurDemandee = new Color(rgb);
+                        System.out.println(getLocalName() + " a reçu un SOS pour la couleur " + couleurDemandee);
                     }
                 } else {
                     block();
@@ -171,7 +198,6 @@ public class Joueur extends Agent {
         
         try {
             DFService.register(this, dfd);
-            System.out.println(getLocalName() + " s'est enregistré auprès du DF");
         } catch (FIPAException e) {
             e.printStackTrace();
         }
@@ -181,7 +207,6 @@ public class Joueur extends Agent {
     protected void takeDown() {
         try {
             DFService.deregister(this);
-            System.out.println(getLocalName() + " s'est désenregistré du DF");
         } catch (FIPAException e) {
             e.printStackTrace();
         }
