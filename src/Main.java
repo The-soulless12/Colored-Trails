@@ -27,19 +27,19 @@ public class Main {
         int c;
         do { c = rand.nextInt(13) + 1; } while (c == a || c == b);
 
-        Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png");
-        Joueur joueur2 = createRandomJoueur("Images/agent" + b + ".png");
+        Joueur joueur1 = createRandomJoueur("Images/agent" + a + ".png", grid);
+        Joueur joueur2 = createRandomJoueur("Images/agent" + b + ".png", grid);
 
         while (joueur1.getPosition().equals(joueur2.getPosition())) {
-            joueur2 = createRandomJoueur("Images/agent" + b + ".png");
+            joueur2 = createRandomJoueur("Images/agent" + b + ".png", grid);
         }
 
-        Joueur joueur3 = createRandomJoueur("Images/agent" + c + ".png");
+        Joueur joueur3 = createRandomJoueur("Images/agent" + c + ".png", grid);
         while (
             joueur3.getPosition().equals(joueur1.getPosition()) || 
             joueur3.getPosition().equals(joueur2.getPosition())
         ) {
-            joueur3 = createRandomJoueur("Images/agent" + c + ".png");
+            joueur3 = createRandomJoueur("Images/agent" + c + ".png", grid);
         }
 
         grid.ajouterJoueur(joueur1);  
@@ -221,7 +221,7 @@ public class Main {
         return new Color(r, g, b);
     }
 
-    public static Joueur createRandomJoueur(String iconPath) {
+    public static Joueur createRandomJoueur(String iconPath, Grille grille) {
         Random rand = new Random();
         int x = rand.nextInt(5);  
         int y = rand.nextInt(7);  
@@ -232,7 +232,7 @@ public class Main {
         Color[] pastelColors = Grille.getPastelcolors();
         List<Color> jetons = new ArrayList<>();
 
-        Joueur joueur = new Joueur(iconPath, position, positionBut, jetons);
+        Joueur joueur = new Joueur(iconPath, position, positionBut, jetons, grille);
 
         int tailleChemin = joueur.getChemin().size();
         int pourcentageBonus = 10;

@@ -12,19 +12,21 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
 public class Joueur extends Agent {
+    private Grille grille;
     private Position position;
     private Position positionArrivee;
     private List<Color> Jetons;
     private String iconPath;
     private Integer NombreBlocage;
-    private List<Position> chemin;
+    private List<CaseChemin> chemin;
 
-    public Joueur(String iconPath, Position position, Position positionArrivee, List<Color> jetons) {
+    public Joueur(String iconPath, Position position, Position positionArrivee, List<Color> jetons, Grille grille) {
         this.position = position;
         this.positionArrivee = positionArrivee;
         Jetons = jetons;
         this.iconPath = iconPath;
         this.NombreBlocage = 0;
+        this.grille = grille;
         this.calculerCheminVersBut();
     }
 
@@ -46,19 +48,22 @@ public class Joueur extends Agent {
             if (y < butY) y++;
             else if (y > butY) y--;
 
-            chemin.add(new Position(x, y));
+            Color c = grille.getCellColor(x, y);
+            chemin.add(new CaseChemin(x, y, c));
         }
 
         while (x != butX) {
             if (x < butX) x++;
             else x--;
-            chemin.add(new Position(x, y));
+            Color c = grille.getCellColor(x, y);
+            chemin.add(new CaseChemin(x, y, c));
         }
 
         while (y != butY) {
             if (y < butY) y++;
             else y--;
-            chemin.add(new Position(x, y));
+            Color c = grille.getCellColor(x, y);
+            chemin.add(new CaseChemin(x, y, c));
         }
     }
 
@@ -70,23 +75,6 @@ public class Joueur extends Agent {
             return true;
         }
         return false;
-    }
-
-    private void registerWithDF() {
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-        
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("colored-trails-player");
-        sd.setName(getLocalName() + "-service");
-        dfd.addServices(sd);
-        
-        try {
-            DFService.register(this, dfd);
-            System.out.println(getLocalName() + " s'est enregistré auprès du DF");
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
     }
     
     private AID[] findAllPlayers() {
@@ -155,7 +143,6 @@ public class Joueur extends Agent {
             }
         });
 
-        // Comportement cyclique pour recevoir les messages
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
@@ -171,6 +158,23 @@ public class Joueur extends Agent {
                 }
             }
         });
+    }
+
+    private void registerWithDF() {
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(getAID());
+        
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("colored-trails-player");
+        sd.setName(getLocalName() + "-service");
+        dfd.addServices(sd);
+        
+        try {
+            DFService.register(this, dfd);
+            System.out.println(getLocalName() + " s'est enregistré auprès du DF");
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
     }
     
     @Override
@@ -213,11 +217,11 @@ public class Joueur extends Agent {
         NombreBlocage = nombreBlocage;
     }
 
-    public List<Position> getChemin() {
+    public List<CaseChemin> getChemin() {
         return chemin;
     }
 
-    public void setChemin(List<Position> chemin) {
+    public void setChemin(List<CaseChemin> chemin) {
         this.chemin = chemin;
     }
 
