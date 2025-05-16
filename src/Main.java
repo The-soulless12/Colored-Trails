@@ -3,6 +3,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -227,19 +228,35 @@ public class Main {
         int y = rand.nextInt(7);  
 
         Position position = new Position(x, y);
-        Position positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
+        Position positionBut;
+        // Cette boucle existe pour éviter d'avoir des chemins de longueur 1 ou 2
+        do {
+            positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
+        } while ( Math.abs(position.getX() - positionBut.getX()) + Math.abs(position.getY() - positionBut.getY()) < 3);
         
-        Color[] pastelColors = Grille.getPastelcolors();
         List<Color> jetons = new ArrayList<>();
-
         Joueur joueur = new Joueur(iconPath, position, positionBut, jetons, grille);
 
-        int tailleChemin = joueur.getChemin().size();
+        List<CaseChemin> chemin = joueur.getChemin();
+        int tailleChemin = chemin.size();
         int pourcentageBonus = 10;
         int bonus = (int) Math.ceil(tailleChemin * (pourcentageBonus / 100.0));
-        int nombreJetons = tailleChemin + bonus; 
+        int nombreJetons = tailleChemin + bonus;
+        
+        // Récupération des couleurs du chemin
+        Set<Color> couleursChemin = chemin.stream()
+            .map(CaseChemin::getCouleur)
+            .collect(Collectors.toSet());
+        // Choisir une couleur à exclure (parmi celles du chemin)
+        Color couleurExclue = couleursChemin.stream()
+            .skip(rand.nextInt(couleursChemin.size()))
+            .findFirst()
+            .orElse(null);
+        List<Color> couleursDisponibles = Arrays.stream(Grille.getPastelcolors())
+            .filter(c -> !c.equals(couleurExclue))
+            .collect(Collectors.toList());
         for (int i = 0; i < nombreJetons; i++) {
-            Color randomColor = pastelColors[rand.nextInt(pastelColors.length)];
+            Color randomColor = couleursDisponibles.get(rand.nextInt(couleursDisponibles.size()));
             jetons.add(randomColor);
         }
         joueur.setJetons(jetons);
