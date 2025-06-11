@@ -193,13 +193,26 @@ public class Main {
         ribbon2.add(startButton);
         startButton.addActionListener(e -> {
             try {
-                System.out.println("Le bouton a été cliqué");
+                System.out.println("Un nouveau tour commence !");
                 List<String> names = new ArrayList<>();
                 for (int i = 0; i < agentsControllers.size(); i++) {
                     names.add("Agent" + (i + 1));
                 }
                 AgentController controller = mainContainer.createNewAgent("Master", "Master", new Object[]{names});
                 controller.start();
+                
+                // AMÉLIORATION : Timer de rafraîchissement plus fréquent et plus long
+                javax.swing.Timer refreshTimer = new javax.swing.Timer(100, ev -> {
+                    rafraichirAffichage(grid);
+                });
+                refreshTimer.setRepeats(true);
+                refreshTimer.start();
+                
+                // Arrêter le timer après 10 secondes au lieu de 4
+                new javax.swing.Timer(10000, ev -> {
+                    refreshTimer.stop();
+                    System.out.println("Timer d'affichage arrêté");
+                }).start();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -223,6 +236,18 @@ public class Main {
         // On affiche les joueurs après que tout est visible
         SwingUtilities.invokeLater(() -> {
             grid.dessinerJoueurs();
+        });
+    }
+
+    public static void rafraichirAffichage(Grille grid) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                grid.dessinerJoueurs(); // met à jour les positions des agents
+                grid.repaint();         // redessine la grille
+                grid.revalidate();      // s'assure que la grille est correctement validée
+            } catch (Exception e) {
+                System.err.println("Erreur lors du rafraîchissement : " + e.getMessage());
+            }
         });
     }
 

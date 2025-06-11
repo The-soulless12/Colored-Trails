@@ -64,6 +64,13 @@ public class Grille extends JPanel {
     }
     
     public void dessinerJoueurs() {
+        // On vide toutes les cases
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells[0].length; j++) {
+                cells[i][j].removeAll();
+            }
+        }
+
         for (Joueur joueur : joueurs) {
             Position pos = joueur.getPosition();
             if (pos == null) continue;
