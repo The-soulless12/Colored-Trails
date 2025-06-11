@@ -61,7 +61,7 @@ public class Joueur extends Agent {
         }
 
         System.out.println(getLocalName() + " n'a pu satisfaire aucune offre reçue.");
-        this.NombreBlocage ++; // on est donc bloqué
+        // this.NombreBlocage ++; // on est donc bloqué
         offresRecues.clear();
     }
 
@@ -77,40 +77,6 @@ public class Joueur extends Agent {
 
     // MÉTHODE MODIFIÉE : Synchronisation avec l'affichage graphique
     public void effectuerUnPas(Boolean firsttime) {
-        // Les conditions d'arrêts du jeu
-        if (chemin.isEmpty()) {
-            System.out.println(getLocalName() + " a atteint son but.");
-            // Envoyer un message à tous les autres pour arrêter le jeu
-            ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
-            fin.setContent("FIN:VICTOIRE:" + getLocalName());
-            AID[] joueurs = findAllPlayers();
-            for (AID agent : joueurs) {
-                if (!agent.equals(getAID())) {
-                    fin.addReceiver(agent);
-                }
-            }
-            send(fin);
-
-            doDelete();
-            return;
-        }
-        if (this.NombreBlocage >= 3) {
-            System.out.println(getLocalName() + " est bloqué 3 fois, fin du jeu !");
-            
-            ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
-            fin.setContent("FIN:BLOCAGE:" + getLocalName());
-            AID[] joueurs = findAllPlayers();
-            for (AID agent : joueurs) {
-                if (!agent.equals(getAID())) {
-                    fin.addReceiver(agent);
-                }
-            }
-            send(fin);
-
-            doDelete();
-            return;
-        }
-
         CaseChemin prochaineCase = chemin.get(0);
         Color couleurCase = prochaineCase.getCouleur();
 
@@ -131,7 +97,7 @@ public class Joueur extends Agent {
             } else {
                 // Cette condition c'est juste pour le cas ou après un transfert qui a échoué (on n'a pas eu notre jeton)
                 System.out.println(getLocalName() + " on m'a trahi, je suis bloqué R.I.P !");
-                this.NombreBlocage ++;
+                //this.NombreBlocage ++;
             }
         }
     }
@@ -162,6 +128,45 @@ public class Joueur extends Agent {
 
         send(sos);
         this.enAttenteOffres = true;
+    }
+
+    public void jouerUnTour(Boolean firsttime) {
+        Position positionAvant = new Position(position.getX(), position.getY());
+        effectuerUnPas(firsttime);
+        if (positionAvant.equals(position)) {
+            setNombreBlocage(this.NombreBlocage + 1);
+            System.out.println(getLocalName() + " est resté bloqué, compteur = " + NombreBlocage);
+        }
+
+        // Vérification de la victoire
+        if (chemin.isEmpty()) {
+            System.out.println(getLocalName() + " a atteint son but. Fin du jeu !");
+            ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
+            fin.setContent("FIN:VICTOIRE:" + getLocalName());
+            AID[] joueurs = findAllPlayers();
+            for (AID agent : joueurs) {
+                if (!agent.equals(getAID())) {
+                    fin.addReceiver(agent);
+                }
+            }
+            send(fin);
+            doDelete();
+            return;
+        }
+        // Vérification du blocage
+        if (this.NombreBlocage >= 3) {
+            System.out.println(getLocalName() + " est bloqué 3 fois, fin du jeu !");
+            ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
+            fin.setContent("FIN:BLOCAGE:" + getLocalName());
+            AID[] joueurs = findAllPlayers();
+            for (AID agent : joueurs) {
+                if (!agent.equals(getAID())) {
+                    fin.addReceiver(agent);
+                }
+            }
+            send(fin);
+            doDelete();
+        }
     }
 
     public void calculerCheminVersBut() {
@@ -272,7 +277,8 @@ public class Joueur extends Agent {
                     if (msg.getContent().equals("GO")) {
                         Boolean firsttime = true;
                         System.out.println(getLocalName() + " commence avec un compteur = " + NombreBlocage);
-                        effectuerUnPas(firsttime);
+                        //effectuerUnPas(firsttime);
+                        jouerUnTour(firsttime);
                     }
                     if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("SOS:")) {
                         int rgb = Integer.parseInt(msg.getContent().split(":")[1]);
@@ -350,7 +356,8 @@ public class Joueur extends Agent {
                         System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
                         
                         Boolean firsttime = false;
-                        effectuerUnPas(firsttime); 
+                        //effectuerUnPas(firsttime); 
+                        jouerUnTour(firsttime);
                     }
                     if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("FIN:")) {
                         System.out.println("Fin du jeu reçue : " + msg.getContent());
@@ -416,7 +423,16 @@ public class Joueur extends Agent {
     }
 
     public void setNombreBlocage(Integer nombreBlocage) {
-        NombreBlocage = nombreBlocage;
+        this.NombreBlocage = nombreBlocage;
+        // Synchronisation avec la grille
+        if (grille != null) {
+            for (Joueur joueurGrille : grille.getJoueurs()) {
+                if (joueurGrille.getIconPath().equals(this.iconPath)) {
+                    joueurGrille.NombreBlocage = nombreBlocage;
+                    break;
+                }
+            }
+        }
     }
 
     public List<CaseChemin> getChemin() {

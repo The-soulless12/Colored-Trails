@@ -91,8 +91,8 @@ public class Main {
             JDialog settingsDialog = new JDialog(frame, "Paramètres", true);
             settingsDialog.setSize(500, 300);
             settingsDialog.setLayout(new BorderLayout());
-            String[] columnNames = {"Agent", "N° Agent", "Position", "But", "Nbre Jetons"};
-            Object[][] data = new Object[grid.getJoueurs().size()][5];
+            String[] columnNames = {"Agent", "N° Agent", "Pos", "But", "Blocage", "Jetons"};
+            Object[][] data = new Object[grid.getJoueurs().size()][6];
 
             int i = 0;
             for (Joueur joueur : grid.getJoueurs()) {
@@ -101,7 +101,8 @@ public class Main {
                 data[i][1] = i+1;
                 data[i][2] = "(" + joueur.getPosition().getX() + ", " + joueur.getPosition().getY() + ")";
                 data[i][3] = "(" + joueur.getPositionArrivee().getX() + ", " + joueur.getPositionArrivee().getY() + ")";
-                data[i][4] = joueur.getJetons().size();
+                data[i][4] = joueur.getNombreBlocage();
+                data[i][5] = joueur.getJetons().size();
                 i++;
             }
 
@@ -211,7 +212,6 @@ public class Main {
                 // Arrêter le timer après 10 secondes au lieu de 4
                 new javax.swing.Timer(10000, ev -> {
                     refreshTimer.stop();
-                    System.out.println("Timer d'affichage arrêté");
                 }).start();
             } catch (Exception ex) {
                 ex.printStackTrace();
