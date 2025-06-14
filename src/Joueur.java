@@ -412,14 +412,33 @@ public class Joueur extends Agent {
     
     @Override
     protected void takeDown() {
-        try {
-            DFService.deregister(this);
-        } catch (FIPAException e) {
-            e.printStackTrace();
+        calculerPoints();
+        super.takeDown();
+    }
+
+    private int calculerPoints() {
+        int points = 0;
+        
+        // Bonus pour les jetons restants (5 points par jeton)
+        points += Jetons.size() * 5;
+        
+        if (position.equals(positionArrivee)) {
+            // Bonus pour avoir atteint le but (100 points)
+            points += 100;
+            Main.appendToCommunication(getLocalName() + " a atteint son but (+100 points)");
+        } else {
+            // Pénalité pour les cases manquantes (10 points par case)
+            int casesManquantes = chemin.size(); // nombre de cases qu'il reste à parcourir
+            int penalite = casesManquantes * 10;
+            points -= penalite;
+            Main.appendToCommunication(getLocalName() + " n'a pas atteint son but (-" + penalite + " points)");
         }
         
-        System.out.println(getLocalName() + " a terminé.");
-        Main.appendToCommunication(getLocalName() + " a terminé.");
+        // Afficher le détail des points
+        Main.appendToCommunication(getLocalName() + " a " + Jetons.size() + " jetons restants (+" + (Jetons.size() * 5) + " points)");
+        Main.appendToCommunication(getLocalName() + " obtient un total de " + points + " points");
+        
+        return points;
     }
 
     public Position getPosition() {
