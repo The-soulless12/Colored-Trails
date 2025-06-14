@@ -68,12 +68,51 @@ public class Joueur extends Agent {
     }
 
     public Color choisirCouleurAechanger(Color couleurDemandee) {
-        // Pour le moment, le proposeur va juste choisir une couleur aléatoire parmi celles qu'il ne possède pas
-        for (Color c : Grille.getPastelcolors()) {
-            if (!Jetons.contains(c) || !c.equals(couleurDemandee)) {
-                return c;
+        double r = Math.random();
+
+        if (r < 0.25) {
+            // Stratégie 1 : couleur aléatoire différente ou non possédée
+            for (Color c : Grille.getPastelcolors()) {
+                if (!Jetons.contains(c) || !c.equals(couleurDemandee)) {
+                    return c;
+                }
+            }
+        } else if (r < 0.5) {
+            // Stratégie 2 : couleur manquante dans le chemin
+            Set<Color> couleursDuChemin = new HashSet<>();
+            for (CaseChemin c : chemin) {
+                couleursDuChemin.add(c.getCouleur());
+            }
+            for (Color c : couleursDuChemin) {
+                if (!Jetons.contains(c)) {
+                    return c;
+                }
+            }
+        } else if (r < 0.75) {
+            // Stratégie 3 : couleur la plus fréquente dans le chemin à venir
+            Map<Color, Integer> freq = new HashMap<>();
+            for (CaseChemin c : chemin) {
+                freq.put(c.getCouleur(), freq.getOrDefault(c.getCouleur(), 0) + 1);
+            }
+
+            Color maxColor = null;
+            int maxCount = -1;
+            for (Map.Entry<Color, Integer> entry : freq.entrySet()) {
+                if (!Jetons.contains(entry.getKey()) && entry.getValue() > maxCount) {
+                    maxColor = entry.getKey();
+                    maxCount = entry.getValue();
+                }
+            }
+            if (maxColor != null) return maxColor;
+        } else {
+            // Stratégie 4 : tentative d’arnaque, proposer une couleur qu'on n’a pas
+            for (Color c : Grille.getPastelcolors()) {
+                if (!c.equals(couleurDemandee)) {
+                    return c; 
+                }
             }
         }
+
         return null;
     }
 
