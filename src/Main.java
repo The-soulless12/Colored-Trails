@@ -35,6 +35,16 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        // Initialiser communicationArea au démarrage
+        communicationArea = new JTextArea();
+        communicationArea.setEditable(false);
+        communicationArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        communicationArea.setMargin(new Insets(10, 10, 10, 10));
+        communicationArea.setBackground(Color.WHITE);
+        communicationArea.setForeground(Color.BLACK);
+        communicationArea.setLineWrap(true);
+        communicationArea.setWrapStyleWord(true);
+
         // Réduit les logs JADE à WARNING uniquement
         Logger jadeLogger = Logger.getLogger("jade");
         jadeLogger.setLevel(Level.WARNING);
@@ -114,7 +124,7 @@ public class Main {
             settingsDialog.setSize(600, 300);
             settingsDialog.setLayout(new BorderLayout());
             Color[] couleurs = Grille.getPastelcolors();
-            String[] baseColumns = {"Agent", "N°", "Pos", "But", "Blocage", "Jetons"};
+            String[] baseColumns = {"Agent", "N°", "Pos", "But", "❌", "α", "Jetons"};
             String[] columnNames = Arrays.copyOf(baseColumns, baseColumns.length + couleurs.length);
             for (int i = 0; i < couleurs.length; i++) {
                 columnNames[baseColumns.length + i] = "C" + (i + 1); // ou utilise un nom basé sur la couleur si tu veux
@@ -129,13 +139,14 @@ public class Main {
                 data[i][2] = "(" + joueur.getPosition().getX() + ", " + joueur.getPosition().getY() + ")";
                 data[i][3] = "(" + joueur.getPositionArrivee().getX() + ", " + joueur.getPositionArrivee().getY() + ")";
                 data[i][4] = joueur.getNombreBlocage();
-                data[i][5] = joueur.getJetons().size();
+                data[i][5] = joueur.getFacteur();
+                data[i][6] = joueur.getJetons().size();
 
                 List<Color> jetons = joueur.getJetons();
                 for (int j = 0; j < couleurs.length; j++) {
                     Color couleur = couleurs[j];
                     long count = jetons.stream().filter(color -> color.equals(couleur)).count();
-                    data[i][6 + j] = count;
+                    data[i][7 + j] = count;
                 }
 
                 i++;
@@ -164,10 +175,10 @@ public class Main {
                     label.setFont(new Font("Monospaced", Font.BOLD, 12));
                     label.setHorizontalAlignment(SwingConstants.CENTER);
 
-                    if (column < 6) {
+                    if (column < 7) {
                         label.setBackground(buttonColor);
                     } else {
-                        int colorIndex = column - 6; // Index dans le tableau des couleurs
+                        int colorIndex = column - 7; // Index dans le tableau des couleurs
                         if (colorIndex < couleurs.length) {
                             label.setBackground(couleurs[colorIndex]);
                         } else {
@@ -267,16 +278,9 @@ public class Main {
 
         commButton.addActionListener(e -> {
             JDialog commDialog = new JDialog(frame, "Communication", true);
-            commDialog.setSize(400, 450);
-            commDialog.setLayout(new BorderLayout());            
-            if (communicationArea == null) {
-                communicationArea = new JTextArea();
-                communicationArea.setEditable(false);
-                communicationArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-                communicationArea.setMargin(new Insets(10, 10, 10, 10));
-                communicationArea.setBackground(Color.WHITE);
-                communicationArea.setForeground(Color.BLACK);
-            }            // Ajout de bordures de la même couleur que le bouton Start
+            commDialog.setSize(450, 500);
+            commDialog.setLayout(new BorderLayout());              // La zone de texte est déjà initialisée au démarrage
+            // On configure juste le scrolling et les marges// Ajout de bordures de la même couleur que le bouton Start
             JScrollPane scrollPane = new JScrollPane(communicationArea);
             scrollPane.setBorder(BorderFactory.createLineBorder(buttonColor, 3));
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  // Désactive la barre horizontale
@@ -324,8 +328,6 @@ public class Main {
         commPanel.add(commButton);
         ribbon1.add(commPanel, BorderLayout.CENTER);
 
-        Main.appendToCommunication("helloooo");
-
         // Ruban 02 : Start button
         JPanel ribbon2 = new JPanel();
         ribbon2.setPreferredSize(new Dimension(600, 40));
@@ -354,7 +356,7 @@ public class Main {
                     firstClick[0] = false;
                 } else {
                     System.out.println("Un nouveau tour commence !");
-                    appendToCommunication("-----------------------------------------");
+                    appendToCommunication("--------------------------------------------------");
                     List<String> names = new ArrayList<>();
                     for (int i = 0; i < agentsControllers.size(); i++) {
                         names.add("Agent" + (i + 1));
