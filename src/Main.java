@@ -245,16 +245,54 @@ public class Main {
         startButton.setPreferredSize(new Dimension(120, 40));
         startButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ribbon2.add(startButton);
+        boolean[] firstClick = {true}; 
+
         startButton.addActionListener(e -> {
             try {
-                System.out.println("Un nouveau tour commence !");
-                List<String> names = new ArrayList<>();
-                for (int i = 0; i < agentsControllers.size(); i++) {
-                    names.add("Agent" + (i + 1));
+                if (firstClick[0]) {
+                    System.out.println("Le jeu commence !");
+                    // Premier clic - démarrer le jeu
+                    List<String> names = new ArrayList<>();
+                    for (int i = 0; i < agentsControllers.size(); i++) {
+                        names.add("Agent" + (i + 1));
+                    }
+                    AgentController controller = mainContainer.createNewAgent("Master", "Master", new Object[]{names});
+                    controller.start();
+                    
+                    // Changer le texte du bouton
+                    startButton.setText("Next");
+                    firstClick[0] = false;
+                } else {
+                    // Clics suivants
+                    System.out.println("Un nouveau tour commence !");
+                    List<String> names = new ArrayList<>();
+                    for (int i = 0; i < agentsControllers.size(); i++) {
+                        names.add("Agent" + (i + 1));
+                    }
+                    AgentController controller = mainContainer.createNewAgent("Master", "Master", new Object[]{names});
+                    controller.start();
                 }
-                AgentController controller = mainContainer.createNewAgent("Master", "Master", new Object[]{names});
-                controller.start();
-                
+
+                // Timer pour vérifier si tous les agents sont déconnectés
+                javax.swing.Timer checkAgentsTimer = new javax.swing.Timer(1000, ev -> {
+                    boolean allAgentsGone = true;
+                    for (AgentController ac : agentsControllers) {
+                        try {
+                            ac.getState();  // Lance une exception si l'agent n'existe plus
+                            allAgentsGone = false;
+                            break;
+                        } catch (Exception ex) {
+                            // Agent n'existe plus
+                        }
+                    }
+                    if (allAgentsGone) {
+                        startButton.setText("FIN");
+                        startButton.setEnabled(false);
+                        ((javax.swing.Timer)ev.getSource()).stop();
+                    }
+                });
+                checkAgentsTimer.start();
+                        
                 // AMÉLIORATION : Timer de rafraîchissement plus fréquent et plus long
                 javax.swing.Timer refreshTimer = new javax.swing.Timer(100, ev -> {
                     rafraichirAffichage(grid);
@@ -262,7 +300,7 @@ public class Main {
                 refreshTimer.setRepeats(true);
                 refreshTimer.start();
                 
-                // Arrêter le timer après 10 secondes au lieu de 4
+                // Arrêter le timer après 10 secondes
                 new javax.swing.Timer(10000, ev -> {
                     refreshTimer.stop();
                 }).start();
