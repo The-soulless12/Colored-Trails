@@ -14,6 +14,26 @@ import jade.core.Runtime;
 import jade.wrapper.*;
 
 public class Main {
+    private static JTextArea communicationArea;
+    
+    public static void appendToCommunication(String message) {
+        if (communicationArea != null) {
+            SwingUtilities.invokeLater(() -> {
+                String processedMessage = message;
+                // Remplacer les descriptions de couleur par C1, C2, C3, etc.
+                if (message.contains("java.awt.Color")) {
+                    Color[] colors = Grille.getPastelcolors();
+                    for (int i = 0; i < colors.length; i++) {
+                        String colorStr = colors[i].toString();
+                        processedMessage = processedMessage.replace(colorStr, "C" + (i + 1));
+                    }
+                }
+                communicationArea.append(processedMessage + "\n");
+                communicationArea.setCaretPosition(communicationArea.getDocument().getLength());
+            });
+        } 
+    }
+
     public static void main(String[] args) {
         // Réduit les logs JADE à WARNING uniquement
         Logger jadeLogger = Logger.getLogger("jade");
@@ -246,32 +266,37 @@ public class Main {
         commButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         commButton.addActionListener(e -> {
-            JDialog commDialog = new JDialog(frame, "Communications", true);
+            JDialog commDialog = new JDialog(frame, "Communication", true);
             commDialog.setSize(400, 450);
-            commDialog.setLayout(new BorderLayout());
+            commDialog.setLayout(new BorderLayout());            
+            if (communicationArea == null) {
+                communicationArea = new JTextArea();
+                communicationArea.setEditable(false);
+                communicationArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                communicationArea.setMargin(new Insets(10, 10, 10, 10));
+                communicationArea.setBackground(Color.WHITE);
+                communicationArea.setForeground(Color.BLACK);
+            }            // Ajout de bordures de la même couleur que le bouton Start
+            JScrollPane scrollPane = new JScrollPane(communicationArea);
+            scrollPane.setBorder(BorderFactory.createLineBorder(buttonColor, 3));
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  // Désactive la barre horizontale
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // Active la barre verticale
+            
+            // Configuration du word wrap
+            communicationArea.setLineWrap(true);        
+            communicationArea.setWrapStyleWord(true);  
+            
+            // Panel principal avec marge (avec un nom unique)
+            JPanel textAreaPanel = new JPanel(new BorderLayout());
+            textAreaPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            textAreaPanel.setBackground(lightBackground);
+            textAreaPanel.add(scrollPane, BorderLayout.CENTER);
+            commDialog.add(textAreaPanel, BorderLayout.CENTER);
 
-            // Panel pour le carré central
-            JPanel squarePanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    int size = Math.min(getWidth(), getHeight()) - 20;
-                    int x = (getWidth() - size) / 2;
-                    int y = (getHeight() - size) / 2;
-                    
-                    Graphics2D g2d = (Graphics2D) g;
-                    g2d.setStroke(new BasicStroke(3)); 
-                    g2d.setColor(buttonColor); 
-                    g2d.drawRect(x, y, size, size);
-                }
-            };
-            squarePanel.setBackground(lightBackground);
-            commDialog.add(squarePanel, BorderLayout.CENTER);
-
-            // Bouton Fermer avec le même style que dans les paramètres
+            // Bouton Fermer
             RoundedButton closeButton = new RoundedButton("Fermer", buttonColor);
-            closeButton.setFont(new Font("Monospaced", Font.BOLD, 25));
-            closeButton.setPreferredSize(new Dimension(120, 40));
+            closeButton.setFont(new Font("Monospaced", Font.PLAIN, 18));
+            closeButton.setPreferredSize(new Dimension(100, 30));
             closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             JPanel bottomPanel = new JPanel();
@@ -279,7 +304,18 @@ public class Main {
             bottomPanel.add(closeButton);
             commDialog.add(bottomPanel, BorderLayout.SOUTH);
 
-            closeButton.addActionListener(ev -> commDialog.dispose());
+            // Action de fermeture
+            closeButton.addActionListener(ev -> {
+                commDialog.dispose();
+            });
+            
+            // Gestionnaire de fenêtre pour garder la référence à communicationArea
+            commDialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                    // On ne fait rien, on garde la référence à communicationArea
+                }
+            });
             
             commDialog.setLocationRelativeTo(frame);
             commDialog.setVisible(true);
@@ -287,6 +323,8 @@ public class Main {
 
         commPanel.add(commButton);
         ribbon1.add(commPanel, BorderLayout.CENTER);
+
+        Main.appendToCommunication("helloooo");
 
         // Ruban 02 : Start button
         JPanel ribbon2 = new JPanel();
@@ -304,7 +342,7 @@ public class Main {
             try {
                 if (firstClick[0]) {
                     System.out.println("Le jeu commence !");
-                    // Premier clic - démarrer le jeu
+                    appendToCommunication("- Le jeu commence !");
                     List<String> names = new ArrayList<>();
                     for (int i = 0; i < agentsControllers.size(); i++) {
                         names.add("Agent" + (i + 1));
@@ -312,12 +350,11 @@ public class Main {
                     AgentController controller = mainContainer.createNewAgent("Master", "Master", new Object[]{names});
                     controller.start();
                     
-                    // Changer le texte du bouton
                     startButton.setText("Next");
                     firstClick[0] = false;
                 } else {
-                    // Clics suivants
                     System.out.println("Un nouveau tour commence !");
+                    appendToCommunication("-----------------------------------------");
                     List<String> names = new ArrayList<>();
                     for (int i = 0; i < agentsControllers.size(); i++) {
                         names.add("Agent" + (i + 1));

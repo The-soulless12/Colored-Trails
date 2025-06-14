@@ -55,12 +55,14 @@ public class Joueur extends Agent {
                 send(accept);
                 
                 System.out.println(getLocalName() + " envoie " + offre.getCouleurDemandeeRetour() + " à " + offre.getProposeur() + " (en attente de " + offre.getCouleurDemandee() + ")");
+                Main.appendToCommunication(getLocalName() + " envoie " + offre.getCouleurDemandeeRetour() + " à " + offre.getProposeur() + " (en attente de " + offre.getCouleurDemandee() + ")");
                 offresRecues.clear(); // On ne traite qu'une seule offre
                 return;
             }
         }
 
         System.out.println(getLocalName() + " n'a pu satisfaire aucune offre reçue.");
+        Main.appendToCommunication(getLocalName() + " n'a pu satisfaire aucune offre reçue.");
         // this.NombreBlocage ++; // on est donc bloqué
         offresRecues.clear();
     }
@@ -93,10 +95,12 @@ public class Joueur extends Agent {
         } else {
             if (firsttime == true) {
                 System.out.println(getLocalName() + " envoie un SOS demandant la couleur " + couleurCase);
+                Main.appendToCommunication(getLocalName() + " envoie un SOS demandant la couleur " + couleurCase);
                 envoyerSOS(couleurCase);
             } else {
                 // Cette condition c'est juste pour le cas ou après un transfert qui a échoué (on n'a pas eu notre jeton)
                 System.out.println(getLocalName() + " on m'a trahi, je suis bloqué R.I.P !");
+                Main.appendToCommunication(getLocalName() + " on m'a trahi, je suis bloqué R.I.P !");
                 //this.NombreBlocage ++;
             }
         }
@@ -134,7 +138,6 @@ public class Joueur extends Agent {
         Position positionAvant = new Position(position.getX(), position.getY());
         effectuerUnPas(firsttime);
         if (positionAvant.equals(position)) {
-            System.out.println(positionAvant + " == " + position + ", je suis bloqué !");
             setNombreBlocage(this.NombreBlocage + 1);
             System.out.println(getLocalName() + " est resté bloqué, compteur = " + NombreBlocage);
         }
@@ -142,6 +145,7 @@ public class Joueur extends Agent {
         // Vérification de la victoire
         if (chemin.isEmpty()) {
             System.out.println(getLocalName() + " a atteint son but. Fin du jeu !");
+            Main.appendToCommunication(getLocalName() + " a atteint son but. Fin du jeu !");
             ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
             fin.setContent("FIN:VICTOIRE:" + getLocalName());
             AID[] joueurs = findAllPlayers();
@@ -157,6 +161,7 @@ public class Joueur extends Agent {
         // Vérification du blocage
         if (this.NombreBlocage >= 3) {
             System.out.println(getLocalName() + " est bloqué 3 fois, fin du jeu !");
+            Main.appendToCommunication(getLocalName() + " est bloqué 3 fois, fin du jeu !");
             ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
             fin.setContent("FIN:BLOCAGE:" + getLocalName());
             AID[] joueurs = findAllPlayers();
@@ -296,10 +301,12 @@ public class Joueur extends Agent {
                                 offre.addReceiver(new AID(demandeur, AID.ISLOCALNAME));
                                 send(offre);
                                 System.out.println(getLocalName() + " propose : " + couleurDemandee + " contre " + couleurDemandeeEnRetour + " pour " + demandeur);
+                                Main.appendToCommunication(getLocalName() + " propose : " + couleurDemandee + " contre " + couleurDemandeeEnRetour + " pour " + demandeur);
                             }
                         }
                         else {
-                            System.out.println(getLocalName() + " Je n'ai aucune offre à te faire  " + demandeur);
+                            System.out.println(getLocalName() + " Je n'ai aucune offre à te faire " + demandeur);
+                            Main.appendToCommunication(getLocalName() + " Je n'ai aucune offre à te faire " + demandeur);
                         }
                     }
                     if (msg.getPerformative() == ACLMessage.PROPOSE && msg.getContent().startsWith("OFFRE:")) {
@@ -333,6 +340,7 @@ public class Joueur extends Agent {
                         if (proposeur.equals(getLocalName())) {
                             Jetons.add(couleurReçue); // On ajoute la couleur reçue
                             System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + demandeur);
+                            Main.appendToCommunication(getLocalName() + " a reçu " + couleurReçue + " de " + demandeur);
 
                             // On envoie maintenant la couleur promise (offerte dans l'échange)
                             if (Jetons.contains(couleurAPromettre)) {
@@ -343,8 +351,10 @@ public class Joueur extends Agent {
                                 send(retour);
 
                                 System.out.println(getLocalName() + " envoie " + couleurAPromettre + " à " + demandeur + " pour conclure l'échange");
+                                Main.appendToCommunication(getLocalName() + " envoie " + couleurAPromettre + " à " + demandeur + " pour conclure l'échange");
                             } else {
                                 System.out.println(getLocalName() + " devait envoyer " + couleurAPromettre + " mais ne l'a plus !");
+                                Main.appendToCommunication(getLocalName() + " devait envoyer " + couleurAPromettre + " mais ne l'a plus !");
                             }
                         }
                     }
@@ -355,6 +365,7 @@ public class Joueur extends Agent {
 
                         Jetons.add(couleurReçue);
                         System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
+                        Main.appendToCommunication(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
                         
                         Position positionAvant = new Position(position.getX(), position.getY());
                         Boolean firsttime = false;
@@ -408,6 +419,7 @@ public class Joueur extends Agent {
         }
         
         System.out.println(getLocalName() + " a terminé.");
+        Main.appendToCommunication(getLocalName() + " a terminé.");
     }
 
     public Position getPosition() {
@@ -436,7 +448,6 @@ public class Joueur extends Agent {
 
     public void setNombreBlocage(Integer nombreBlocage) {
         this.NombreBlocage = nombreBlocage;
-        // Synchronisation avec la grille
         if (grille != null) {
             for (Joueur joueurGrille : grille.getJoueurs()) {
                 if (joueurGrille.getIconPath().equals(this.iconPath)) {
