@@ -179,8 +179,13 @@ public class Main {
             JScrollPane scrollPane = new JScrollPane(table);
             settingsDialog.add(scrollPane, BorderLayout.CENTER);
 
-            JButton validateButton = new JButton("Fermer");
+            RoundedButton validateButton = new RoundedButton("Fermer", buttonColor);
+            validateButton.setFont(new Font("Monospaced", Font.PLAIN, 18));
+            validateButton.setPreferredSize(new Dimension(100, 30));
+            validateButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
             JPanel bottomPanel = new JPanel();
+            bottomPanel.setBackground(lightBackground); // Utilise la même couleur de fond que la fenêtre principale
             bottomPanel.add(validateButton);
             settingsDialog.add(bottomPanel, BorderLayout.SOUTH);
 
