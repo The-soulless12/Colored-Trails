@@ -134,6 +134,7 @@ public class Joueur extends Agent {
         Position positionAvant = new Position(position.getX(), position.getY());
         effectuerUnPas(firsttime);
         if (positionAvant.equals(position)) {
+            System.out.println(positionAvant + " == " + position + ", je suis bloqué !");
             setNombreBlocage(this.NombreBlocage + 1);
             System.out.println(getLocalName() + " est resté bloqué, compteur = " + NombreBlocage);
         }
@@ -355,9 +356,13 @@ public class Joueur extends Agent {
                         Jetons.add(couleurReçue);
                         System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
                         
+                        Position positionAvant = new Position(position.getX(), position.getY());
                         Boolean firsttime = false;
                         //effectuerUnPas(firsttime); 
                         jouerUnTour(firsttime);
+
+                        try { Thread.sleep(800); } catch (InterruptedException e) { e.printStackTrace(); }
+                        verifierDeBlocage(positionAvant);
                     }
                     if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("FIN:")) {
                         System.out.println("Fin du jeu reçue : " + msg.getContent());
@@ -369,6 +374,13 @@ public class Joueur extends Agent {
                 }
             }
         });
+    }
+
+    public void verifierDeBlocage(Position positionAvant) {
+        if (!positionAvant.equals(position)) {
+            setNombreBlocage(this.NombreBlocage - 1);
+            System.out.println(getLocalName() + "a pu se débloquer, compteur = " + NombreBlocage);
+        }
     }
 
     private void registerWithDF() {
