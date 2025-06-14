@@ -1,5 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -89,20 +91,33 @@ public class Main {
         // Fenetre Parametres
         cornerButton.addActionListener(e -> {
             JDialog settingsDialog = new JDialog(frame, "Paramètres", true);
-            settingsDialog.setSize(500, 300);
+            settingsDialog.setSize(600, 300);
             settingsDialog.setLayout(new BorderLayout());
-            String[] columnNames = {"Agent", "N° Agent", "Pos", "But", "Blocage", "Jetons"};
-            Object[][] data = new Object[grid.getJoueurs().size()][6];
+            Color[] couleurs = Grille.getPastelcolors();
+            String[] baseColumns = {"Agent", "N°", "Pos", "But", "Blocage", "Jetons"};
+            String[] columnNames = Arrays.copyOf(baseColumns, baseColumns.length + couleurs.length);
+            for (int i = 0; i < couleurs.length; i++) {
+                columnNames[baseColumns.length + i] = "C" + (i + 1); // ou utilise un nom basé sur la couleur si tu veux
+            }
 
+            Object[][] data = new Object[grid.getJoueurs().size()][columnNames.length];
             int i = 0;
             for (Joueur joueur : grid.getJoueurs()) {
                 ImageIcon iconJoueur = new ImageIcon(new ImageIcon(joueur.getIconPath()).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
                 data[i][0] = iconJoueur;
-                data[i][1] = i+1;
+                data[i][1] = i + 1;
                 data[i][2] = "(" + joueur.getPosition().getX() + ", " + joueur.getPosition().getY() + ")";
                 data[i][3] = "(" + joueur.getPositionArrivee().getX() + ", " + joueur.getPositionArrivee().getY() + ")";
                 data[i][4] = joueur.getNombreBlocage();
                 data[i][5] = joueur.getJetons().size();
+
+                List<Color> jetons = joueur.getJetons();
+                for (int j = 0; j < couleurs.length; j++) {
+                    Color couleur = couleurs[j];
+                    long count = jetons.stream().filter(color -> color.equals(couleur)).count();
+                    data[i][6 + j] = count;
+                }
+
                 i++;
             }
 
@@ -119,7 +134,40 @@ public class Main {
             });
             table.setFont(new Font("Monospaced", Font.PLAIN, 12));
             table.getTableHeader().setFont(new Font("Monospaced", Font.BOLD, 12));
-            table.getTableHeader().setBackground(buttonColor);
+            //table.getTableHeader().setBackground(buttonColor);
+            //-----------------------------------
+            TableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value,
+                                                            boolean isSelected, boolean hasFocus,
+                                                            int row, int column) {
+                    JLabel label = (JLabel) super.getTableCellRendererComponent(
+                            table, value, isSelected, hasFocus, row, column);
+                    label.setFont(new Font("Monospaced", Font.BOLD, 12));
+                    label.setHorizontalAlignment(SwingConstants.CENTER);
+
+                    if (column < 6) {
+                        label.setBackground(buttonColor);
+                    } else {
+                        //label.setBackground(Color.LIGHT_GRAY);
+                        // Boucle pour les colonnes de couleur (à partir de la colonne 6)
+                        int colorIndex = column - 6; // Index dans le tableau des couleurs
+                        if (colorIndex < couleurs.length) {
+                            label.setBackground(couleurs[colorIndex]);
+                        } else {
+                            label.setBackground(Color.LIGHT_GRAY);
+                        }
+                    }
+
+                    label.setOpaque(true);
+                    label.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY)); // bordures fines
+                    return label;
+                }
+            };
+            for (int col = 0; col < table.getColumnCount(); col++) {
+                table.getColumnModel().getColumn(col).setHeaderRenderer(headerRenderer);
+            }
+            //-----------------------------------
             table.setRowHeight(30); 
 
             DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -271,7 +319,7 @@ public class Main {
         positionsOccupees.add(position);
 
         Position positionBut;
-        // Cette boucle existe pour éviter d'avoir des chemins de longueur 1 ou 2
+        // Cette boucle existe pour éviter d'avoir des chemins supérieurs à 3 cases
         do {
             positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
         } while ( Math.abs(position.getX() - positionBut.getX()) + Math.abs(position.getY() - positionBut.getY()) < 3);
