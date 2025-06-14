@@ -134,8 +134,6 @@ public class Main {
             });
             table.setFont(new Font("Monospaced", Font.PLAIN, 12));
             table.getTableHeader().setFont(new Font("Monospaced", Font.BOLD, 12));
-            //table.getTableHeader().setBackground(buttonColor);
-            //-----------------------------------
             TableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
                 @Override
                 public Component getTableCellRendererComponent(JTable table, Object value,
@@ -149,8 +147,6 @@ public class Main {
                     if (column < 6) {
                         label.setBackground(buttonColor);
                     } else {
-                        //label.setBackground(Color.LIGHT_GRAY);
-                        // Boucle pour les colonnes de couleur (à partir de la colonne 6)
                         int colorIndex = column - 6; // Index dans le tableau des couleurs
                         if (colorIndex < couleurs.length) {
                             label.setBackground(couleurs[colorIndex]);
@@ -167,7 +163,6 @@ public class Main {
             for (int col = 0; col < table.getColumnCount(); col++) {
                 table.getColumnModel().getColumn(col).setHeaderRenderer(headerRenderer);
             }
-            //-----------------------------------
             table.setRowHeight(30); 
 
             DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -234,6 +229,64 @@ public class Main {
         });
         leftPanel.add(logoutButton);
         ribbon1.add(leftPanel, BorderLayout.WEST);
+
+        // Communications button
+        JPanel commPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        commPanel.setOpaque(false);
+        ImageIcon commIcon = new ImageIcon("Images/communication.png");
+        Image commImg = commIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        ImageIcon commScaledIcon = new ImageIcon(commImg);
+
+        JButton commButton = new JButton(commScaledIcon);
+        commButton.setPreferredSize(new Dimension(30, 30));
+        commButton.setFocusPainted(false);
+        commButton.setContentAreaFilled(false);
+        commButton.setBorderPainted(false);
+        commButton.setMargin(new Insets(0, 0, 0, 0));
+        commButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        commButton.addActionListener(e -> {
+            JDialog commDialog = new JDialog(frame, "Communications", true);
+            commDialog.setSize(400, 450);
+            commDialog.setLayout(new BorderLayout());
+
+            // Panel pour le carré central
+            JPanel squarePanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    int size = Math.min(getWidth(), getHeight()) - 20;
+                    int x = (getWidth() - size) / 2;
+                    int y = (getHeight() - size) / 2;
+                    
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setStroke(new BasicStroke(3)); 
+                    g2d.setColor(buttonColor); 
+                    g2d.drawRect(x, y, size, size);
+                }
+            };
+            squarePanel.setBackground(lightBackground);
+            commDialog.add(squarePanel, BorderLayout.CENTER);
+
+            // Bouton Fermer avec le même style que dans les paramètres
+            RoundedButton closeButton = new RoundedButton("Fermer", buttonColor);
+            closeButton.setFont(new Font("Monospaced", Font.BOLD, 25));
+            closeButton.setPreferredSize(new Dimension(120, 40));
+            closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.setBackground(lightBackground);
+            bottomPanel.add(closeButton);
+            commDialog.add(bottomPanel, BorderLayout.SOUTH);
+
+            closeButton.addActionListener(ev -> commDialog.dispose());
+            
+            commDialog.setLocationRelativeTo(frame);
+            commDialog.setVisible(true);
+        });
+
+        commPanel.add(commButton);
+        ribbon1.add(commPanel, BorderLayout.CENTER);
 
         // Ruban 02 : Start button
         JPanel ribbon2 = new JPanel();
