@@ -22,7 +22,7 @@ public class Joueur extends Agent {
     private List<CaseChemin> chemin;
     private List<Offre> offresRecues = new ArrayList<>();
     private Boolean enAttenteOffres;
-    private Float Facteur;
+    private Integer Facteur;
 
     public Joueur(String iconPath, Position position, Position positionArrivee, List<Color> jetons, Grille grille) {
         this.position = position;
@@ -33,7 +33,7 @@ public class Joueur extends Agent {
         this.grille = grille;
         this.calculerCheminVersBut();
         this.enAttenteOffres = false;
-        this.Facteur = 1f;
+        this.Facteur = 100;
     }
 
     public Joueur() {
@@ -90,7 +90,7 @@ public class Joueur extends Agent {
                     return c;
                 }
             }
-            Facteur = Facteur - 0.05f;
+            this.Facteur = this.Facteur - 5;
         } else if (r < 0.75) {
             // Stratégie 3 : couleur la plus fréquente dans le chemin à venir
             Map<Color, Integer> freq = new HashMap<>();
@@ -107,7 +107,7 @@ public class Joueur extends Agent {
                 }
             }
             if (maxColor != null) return maxColor;
-            Facteur = Facteur - 0.1f;
+            this.Facteur = this.Facteur- 10;
         } else {
             // Stratégie 4 : tentative d’arnaque, proposer une couleur qu'on n’a pas
             for (Color c : Grille.getPastelcolors()) {
@@ -115,7 +115,7 @@ public class Joueur extends Agent {
                     return c; 
                 }
             }
-            Facteur = Facteur - 0.15f;
+            this.Facteur = this.Facteur - 15;
         }
 
         return null;
@@ -284,7 +284,7 @@ public class Joueur extends Agent {
             this.chemin = new ArrayList<>();
             this.calculerCheminVersBut();
             this.enAttenteOffres = false;
-            this.Facteur = 1f;
+            this.Facteur = 100;
 
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
@@ -578,11 +578,11 @@ public class Joueur extends Agent {
         this.enAttenteOffres = enAttenteOffres;
     }
     
-    public Float getFacteur() {
+    public Integer getFacteur() {
         return Facteur;
     }
 
-    public void setFacteur(Float facteur) {
-        Facteur = facteur;
+    public void setFacteur(Integer facteur) {
+        this.Facteur = facteur;
     }
 }
