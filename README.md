@@ -27,6 +27,7 @@ Développement d'un environnement multi-agents pour le jeu Colored Trails, utili
 
 # Note
 - Pour exécuter le projet, saisissez la commande suivante `.\run.bat` dans votre terminal.
+- Voici un aperçu de l’interface visuelle du projet :
 <p align="center">
-  <img src="Images/agent1.png" alt="Aperçu de la grille de jeu" width="400"/>
+  <img src="Images/readme.png" alt="Aperçu de la grille de jeu" width="400"/>
 </p>
