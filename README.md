@@ -5,7 +5,7 @@ Développement d'un environnement multi-agents pour le jeu Colored Trails, utili
 - Visualisation des déplacements des agents sur la grille, de leur case de départ à leur destination.
 - Affichage des communications entre agents pendant la partie (négociations de jetons et transactions) via le bouton bulle de discussion en haut à droite.
 - Visualisation de l’environnement propre à chaque agent, accessible via le bouton paramètres à chaque étape du jeu. On peut y suivre la position de l'agent par rapport à sa case but, son nombre de blocages dans la partie (X), son facteur de loyauté vu par les autres agents (α) ainsi que le nombre de jetons en sa possession avec le détail des occurrences par couleur.
-- Lorsqu’un agent est bloqué, il peut envoyer une demande de jeton aux autres agents. Ces derniers peuvent alors faire une offre selon ces quatre stratégies disponibles :
+- Lorsqu’un agent est bloqué, il peut envoyer une demande de jeton aux autres agents. Ces derniers peuvent alors lui faire une offre selon ces quatre stratégies disponibles :
   - L’agent demande en échange une couleur aléatoire parmi celles qui existent, différente de celle demandée ou non encore possédée.
   - L’agent identifie une couleur manquante sur son chemin et la réclame afin de compléter sa collection. Une approche basée sur l’observation plutôt que la ruse.
   - L’agent exige la couleur la plus présente sur son chemin futur parmi celles qu’il ne possède pas encore. Elle maximise les chances de progression au détriment de la loyauté.
