@@ -453,11 +453,14 @@ public class Main {
         } while (positionsOccupees.contains(position));
         positionsOccupees.add(position);
 
+        // Générer une longueur de chemin aléatoire entre 3 et 7 (la même pour tous les agents)
+        int distance = rand.nextInt(5) + 3;
+
         Position positionBut;
         // Cette boucle existe pour éviter d'avoir des chemins supérieurs à 3 cases
         do {
             positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
-        } while ( Math.abs(position.getX() - positionBut.getX()) + Math.abs(position.getY() - positionBut.getY()) < 3);
+        } while ( Math.abs(position.getX() - positionBut.getX()) + Math.abs(position.getY() - positionBut.getY()) != distance);
         
         List<Color> jetons = new ArrayList<>();
         Joueur joueur = new Joueur(iconPath, position, positionBut, jetons, grille);
