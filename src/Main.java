@@ -20,7 +20,7 @@ public class Main {
         if (communicationArea != null) {
             SwingUtilities.invokeLater(() -> {
                 String processedMessage = message;
-                // Remplacer les descriptions de couleur par C1, C2, C3, etc.
+                // On remplace les descriptions de couleur par C1, C2, C3, etc..
                 if (message.contains("java.awt.Color")) {
                     Color[] colors = Grille.getPastelcolors();
                     for (int i = 0; i < colors.length; i++) {
@@ -35,7 +35,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // Initialiser communicationArea au démarrage
+        // Initialiser des messages de communication au démarrage
         communicationArea = new JTextArea();
         communicationArea.setEditable(false);
         communicationArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -102,7 +102,7 @@ public class Main {
         mainPanel.setBackground(lightBackground);
         mainPanel.setOpaque(true);
 
-        // Ruban 01 : Settings and Logout
+        // Ruban 01 : Settings, logout & communications
         JPanel ribbon1 = new JPanel();
         ribbon1.setPreferredSize(new Dimension(600, 40)); 
         ribbon1.setOpaque(false);
@@ -127,11 +127,12 @@ public class Main {
             String[] baseColumns = {"Agent", "N°", "Pos", "But", "❌", "α", "Jetons"};
             String[] columnNames = Arrays.copyOf(baseColumns, baseColumns.length + couleurs.length);
             for (int i = 0; i < couleurs.length; i++) {
-                columnNames[baseColumns.length + i] = "C" + (i + 1); // ou utilise un nom basé sur la couleur si tu veux
+                columnNames[baseColumns.length + i] = "C" + (i + 1);
             }
 
             Object[][] data = new Object[grid.getJoueurs().size()][columnNames.length];
             int i = 0;
+            int taille = 7;
             for (Joueur joueur : grid.getJoueurs()) {
                 ImageIcon iconJoueur = new ImageIcon(new ImageIcon(joueur.getIconPath()).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
                 data[i][0] = iconJoueur;
@@ -146,7 +147,7 @@ public class Main {
                 for (int j = 0; j < couleurs.length; j++) {
                     Color couleur = couleurs[j];
                     long count = jetons.stream().filter(color -> color.equals(couleur)).count();
-                    data[i][7 + j] = count;
+                    data[i][taille + j] = count;
                 }
 
                 i++;
@@ -175,10 +176,10 @@ public class Main {
                     label.setFont(new Font("Monospaced", Font.BOLD, 12));
                     label.setHorizontalAlignment(SwingConstants.CENTER);
 
-                    if (column < 7) {
+                    if (column < taille) {
                         label.setBackground(buttonColor);
                     } else {
-                        int colorIndex = column - 7; // Index dans le tableau des couleurs
+                        int colorIndex = column - taille; // Index dans le tableau des couleurs
                         if (colorIndex < couleurs.length) {
                             label.setBackground(couleurs[colorIndex]);
                         } else {
@@ -187,7 +188,7 @@ public class Main {
                     }
 
                     label.setOpaque(true);
-                    label.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY)); // bordures fines
+                    label.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY));
                     return label;
                 }
             };
@@ -279,18 +280,16 @@ public class Main {
         commButton.addActionListener(e -> {
             JDialog commDialog = new JDialog(frame, "Communication", true);
             commDialog.setSize(450, 500);
-            commDialog.setLayout(new BorderLayout());              // La zone de texte est déjà initialisée au démarrage
-            // On configure juste le scrolling et les marges// Ajout de bordures de la même couleur que le bouton Start
+            commDialog.setLayout(new BorderLayout());              
+
             JScrollPane scrollPane = new JScrollPane(communicationArea);
             scrollPane.setBorder(BorderFactory.createLineBorder(buttonColor, 3));
-            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  // Désactive la barre horizontale
-            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  // Active la barre verticale
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);  
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);  
             
-            // Configuration du word wrap
             communicationArea.setLineWrap(true);        
             communicationArea.setWrapStyleWord(true);  
             
-            // Panel principal avec marge (avec un nom unique)
             JPanel textAreaPanel = new JPanel(new BorderLayout());
             textAreaPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             textAreaPanel.setBackground(lightBackground);
@@ -316,9 +315,7 @@ public class Main {
             // Gestionnaire de fenêtre pour garder la référence à communicationArea
             commDialog.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
-                public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                    // On ne fait rien, on garde la référence à communicationArea
-                }
+                public void windowClosing(java.awt.event.WindowEvent windowEvent) { }
             });
             
             commDialog.setLocationRelativeTo(frame);
@@ -373,9 +370,7 @@ public class Main {
                             ac.getState();  // Lance une exception si l'agent n'existe plus
                             allAgentsGone = false;
                             break;
-                        } catch (Exception ex) {
-                            // Agent n'existe plus
-                        }
+                        } catch (Exception ex) { }
                     }
                     if (allAgentsGone) {
                         startButton.setText("FIN");
@@ -385,14 +380,12 @@ public class Main {
                 });
                 checkAgentsTimer.start();
                         
-                // AMÉLIORATION : Timer de rafraîchissement plus fréquent et plus long
                 javax.swing.Timer refreshTimer = new javax.swing.Timer(100, ev -> {
                     rafraichirAffichage(grid);
                 });
                 refreshTimer.setRepeats(true);
                 refreshTimer.start();
                 
-                // Arrêter le timer après 10 secondes
                 new javax.swing.Timer(10000, ev -> {
                     refreshTimer.stop();
                 }).start();
@@ -457,7 +450,6 @@ public class Main {
         int distance = rand.nextInt(5) + 3;
 
         Position positionBut;
-        // Cette boucle existe pour éviter d'avoir des chemins supérieurs à 3 cases
         do {
             positionBut = new Position(rand.nextInt(5), rand.nextInt(7));
         } while ( Math.abs(position.getX() - positionBut.getX()) + Math.abs(position.getY() - positionBut.getY()) != distance);

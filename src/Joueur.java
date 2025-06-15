@@ -67,16 +67,13 @@ public class Joueur extends Agent {
                         offre.getProposeur());
                 send(accept);
                 
-                System.out.println(getLocalName() + " envoie " + offre.getCouleurDemandeeRetour() + " à " + offre.getProposeur() + " (en attente de " + offre.getCouleurDemandee() + ")");
                 Main.appendToCommunication(getLocalName() + " envoie " + offre.getCouleurDemandeeRetour() + " à " + offre.getProposeur() + " (en attente de " + offre.getCouleurDemandee() + ")");
                 offresRecues.clear(); // On ne traite qu'une seule offre
                 return;
             }
         }
 
-        System.out.println(getLocalName() + " n'a pu satisfaire aucune offre reçue.");
         Main.appendToCommunication(getLocalName() + " n'a pu satisfaire aucune offre reçue.");
-        // this.NombreBlocage ++; // on est donc bloqué
         offresRecues.clear();
     }
 
@@ -85,7 +82,6 @@ public class Joueur extends Agent {
 
         if (r < 0.25) {
             // Stratégie 1 : couleur aléatoire différente ou non possédée
-        System.out.println(this.Loyaute);
             for (Color c : Grille.getPastelcolors()) {
                 if (!Jetons.contains(c) || !c.equals(couleurDemandee)) {
                     return c;
@@ -132,37 +128,29 @@ public class Joueur extends Agent {
         return null;
     }
 
-    // MÉTHODE MODIFIÉE : Synchronisation avec l'affichage graphique
     public void effectuerUnPas(Boolean firsttime) {
         CaseChemin prochaineCase = chemin.get(0);
         Color couleurCase = prochaineCase.getCouleur();
 
         if (Jetons.contains(couleurCase)) {
-            // MODIFICATION : Mise à jour de la position ET synchronisation avec l'affichage
             position = new Position(prochaineCase.getX(), prochaineCase.getY());
             Jetons.remove(couleurCase);
             chemin.remove(0);
 
-            // NOUVEAU : Synchroniser avec l'objet Joueur dans la grille
             synchroniserPositionAvecGrille();
 
-            System.out.println(getLocalName() + " avance vers la position " + position);
             Main.appendToCommunication(getLocalName() + " avance vers la position " + position);
         } else {
             if (firsttime == true) {
-                System.out.println(getLocalName() + " envoie un SOS demandant la couleur " + couleurCase);
                 Main.appendToCommunication(getLocalName() + " envoie un SOS demandant la couleur " + couleurCase);
                 envoyerSOS(couleurCase);
             } else {
                 // Cette condition c'est juste pour le cas ou après un transfert qui a échoué (on n'a pas eu notre jeton)
-                System.out.println(getLocalName() + " on m'a trahi, je suis bloqué R.I.P !");
                 Main.appendToCommunication(getLocalName() + " on m'a trahi, je suis bloqué R.I.P !");
-                //this.NombreBlocage ++;
             }
         }
     }
 
-    // NOUVELLE MÉTHODE : Synchronisation avec l'affichage graphique
     private void synchroniserPositionAvecGrille() {
         if (grille != null) {
             // Trouver l'objet Joueur correspondant dans la grille et mettre à jour sa position
@@ -195,12 +183,11 @@ public class Joueur extends Agent {
         effectuerUnPas(firsttime);
         if (positionAvant.equals(position)) {
             setNombreBlocage(this.NombreBlocage + 1);
-            System.out.println(getLocalName() + " est resté bloqué, compteur = " + NombreBlocage);
+            Main.appendToCommunication(getLocalName() + " est resté bloqué, compteur = " + NombreBlocage);
         }
 
         // Vérification de la victoire
         if (chemin.isEmpty()) {
-            System.out.println(getLocalName() + " a atteint son but. Fin du jeu !");
             Main.appendToCommunication(getLocalName() + " a atteint son but. Fin du jeu !");
             ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
             fin.setContent("FIN:VICTOIRE:" + getLocalName());
@@ -216,7 +203,6 @@ public class Joueur extends Agent {
         }
         // Vérification du blocage
         if (this.NombreBlocage >= 3) {
-            System.out.println(getLocalName() + " est bloqué 3 fois, fin du jeu !");
             Main.appendToCommunication(getLocalName() + " est bloqué 3 fois, fin du jeu !");
             ACLMessage fin = new ACLMessage(ACLMessage.INFORM);
             fin.setContent("FIN:BLOCAGE:" + getLocalName());
@@ -308,7 +294,7 @@ public class Joueur extends Agent {
             this.positionArrivee = new Position(0, 0);
         }
 
-        System.out.println(getLocalName() + " prêt pour le jeu! Mes jetons sont : " + this.Jetons);
+        Main.appendToCommunication(getLocalName() + " prêt pour le jeu!");
         
         registerWithDF();
         
@@ -339,8 +325,6 @@ public class Joueur extends Agent {
                 if (msg != null) {
                     if (msg.getContent().equals("GO")) {
                         Boolean firsttime = true;
-                        System.out.println(getLocalName() + " commence avec un compteur = " + NombreBlocage);
-                        //effectuerUnPas(firsttime);
                         jouerUnTour(firsttime);
                     }
                     if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("SOS:")) {
@@ -357,12 +341,10 @@ public class Joueur extends Agent {
                                 offre.setContent("OFFRE:" + couleurDemandee.getRGB() + ":" + couleurDemandeeEnRetour.getRGB() + " pour " + demandeur);
                                 offre.addReceiver(new AID(demandeur, AID.ISLOCALNAME));
                                 send(offre);
-                                System.out.println(getLocalName() + " propose : " + couleurDemandee + " contre " + couleurDemandeeEnRetour + " pour " + demandeur);
                                 Main.appendToCommunication(getLocalName() + " propose : " + couleurDemandee + " contre " + couleurDemandeeEnRetour + " pour " + demandeur);
                             }
                         }
                         else {
-                            System.out.println(getLocalName() + " Je n'ai aucune offre à te faire " + demandeur);
                             Main.appendToCommunication(getLocalName() + " Je n'ai aucune offre à te faire " + demandeur);
                         }
                     }
@@ -396,7 +378,6 @@ public class Joueur extends Agent {
 
                         if (proposeur.equals(getLocalName())) {
                             Jetons.add(couleurReçue); // On ajoute la couleur reçue
-                            System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + demandeur);
                             Main.appendToCommunication(getLocalName() + " a reçu " + couleurReçue + " de " + demandeur);
 
                             // On envoie maintenant la couleur promise (offerte dans l'échange)
@@ -407,10 +388,8 @@ public class Joueur extends Agent {
                                 retour.setContent("JETON_RETOUR:" + couleurAPromettre.getRGB() + ":" + getLocalName());
                                 send(retour);
 
-                                System.out.println(getLocalName() + " envoie " + couleurAPromettre + " à " + demandeur + " pour conclure l'échange");
                                 Main.appendToCommunication(getLocalName() + " envoie " + couleurAPromettre + " à " + demandeur + " pour conclure l'échange");
                             } else {
-                                System.out.println(getLocalName() + " devait envoyer " + couleurAPromettre + " mais ne l'a plus !");
                                 Main.appendToCommunication(getLocalName() + " devait envoyer " + couleurAPromettre + " mais ne l'a plus !");
                             }
                         }
@@ -421,19 +400,17 @@ public class Joueur extends Agent {
                         String proposeur = parts[2];
 
                         Jetons.add(couleurReçue);
-                        System.out.println(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
                         Main.appendToCommunication(getLocalName() + " a reçu " + couleurReçue + " de " + proposeur + ", il peut avancer !");
                         
                         Position positionAvant = new Position(position.getX(), position.getY());
-                        Boolean firsttime = false;
-                        //effectuerUnPas(firsttime); 
+                        Boolean firsttime = false; 
                         jouerUnTour(firsttime);
 
                         try { Thread.sleep(800); } catch (InterruptedException e) { e.printStackTrace(); }
                         verifierDeBlocage(positionAvant);
                     }
                     if (msg.getPerformative() == ACLMessage.INFORM && msg.getContent().startsWith("FIN:")) {
-                        System.out.println("Fin du jeu reçue : " + msg.getContent());
+                        Main.appendToCommunication("Fin du jeu reçue : " + msg.getContent());
                         doDelete();
                         return;
                     }
@@ -447,7 +424,7 @@ public class Joueur extends Agent {
     public void verifierDeBlocage(Position positionAvant) {
         if (!positionAvant.equals(position)) {
             setNombreBlocage(this.NombreBlocage - 1);
-            System.out.println(getLocalName() + "a pu se débloquer, compteur = " + NombreBlocage);
+            Main.appendToCommunication(getLocalName() + "a pu se débloquer, compteur = " + NombreBlocage);
         }
     }
 
@@ -608,17 +585,13 @@ public class Joueur extends Agent {
     }
 
     private Integer getLoyauteJoueur(String nomJoueur) {
-    if (grille != null) {
-        for (Joueur joueur : grille.getJoueurs()) {
-            if (joueur.getLocalName() != null && joueur.getLocalName().equals(nomJoueur)) {
-                return joueur.getLoyaute();
-            }
-            // Si pas de localName, essayer avec iconPath (au cas où)
-            if (joueur.getIconPath().contains(nomJoueur)) {
-                return joueur.getLoyaute();
+        if (grille != null) {
+            for (Joueur joueur : grille.getJoueurs()) {
+                if (joueur.getLocalName() != null && joueur.getLocalName().equals(nomJoueur)) {
+                    return joueur.getLoyaute();
+                }
             }
         }
+        return 0; 
     }
-    return 0; 
-}
 }

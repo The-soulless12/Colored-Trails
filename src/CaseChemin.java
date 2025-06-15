@@ -17,7 +17,5 @@ public class CaseChemin {
     
     public Color getCouleur() { return couleur; }
 
-    public Position toPosition() {
-        return new Position(x, y);
-    }
+    public Position toPosition() { return new Position(x, y); }
 }
