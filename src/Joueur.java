@@ -22,7 +22,7 @@ public class Joueur extends Agent {
     private List<CaseChemin> chemin;
     private List<Offre> offresRecues = new ArrayList<>();
     private Boolean enAttenteOffres;
-    private Integer Facteur;
+    private Integer Loyaute;
 
     public Joueur(String iconPath, Position position, Position positionArrivee, List<Color> jetons, Grille grille) {
         this.position = position;
@@ -33,7 +33,7 @@ public class Joueur extends Agent {
         this.grille = grille;
         this.calculerCheminVersBut();
         this.enAttenteOffres = false;
-        this.Facteur = 100;
+        this.Loyaute = 100;
     }
 
     public Joueur() {
@@ -41,6 +41,17 @@ public class Joueur extends Agent {
     }
 
     private void traiterOffres() {
+        // Si on a plusieurs offres, on choisit celle avec la meilleure loyauté
+        if (offresRecues.size() > 1) {
+            // Trier les offres par loyauté décroissante (plus loyaux en premier)
+            offresRecues.sort((o1, o2) -> {
+                // Récupérer la loyauté du proposeur via la grille
+                Integer loyaute1 = getLoyauteJoueur(o1.getProposeur());
+                Integer loyaute2 = getLoyauteJoueur(o2.getProposeur());
+                return loyaute2.compareTo(loyaute1); // ordre décroissant
+            });
+        }
+
         for (Offre offre : offresRecues) {
             // Si on a le jeton demandé par le proposeur, on accepte
             if (Jetons.contains(offre.getCouleurDemandeeRetour())) {
@@ -74,7 +85,7 @@ public class Joueur extends Agent {
 
         if (r < 0.25) {
             // Stratégie 1 : couleur aléatoire différente ou non possédée
-        System.out.println(this.Facteur);
+        System.out.println(this.Loyaute);
             for (Color c : Grille.getPastelcolors()) {
                 if (!Jetons.contains(c) || !c.equals(couleurDemandee)) {
                     return c;
@@ -82,7 +93,7 @@ public class Joueur extends Agent {
             }
         } else if (r < 0.5) {
             // Stratégie 2 : couleur manquante dans le chemin
-            setFacteur(- 2); 
+            setLoyaute(- 2); 
             Set<Color> couleursDuChemin = new HashSet<>();
             for (CaseChemin c : chemin) {
                 couleursDuChemin.add(c.getCouleur());
@@ -94,7 +105,7 @@ public class Joueur extends Agent {
             }
         } else if (r < 0.75) {
             // Stratégie 3 : couleur la plus fréquente dans le chemin à venir
-            setFacteur(- 7);
+            setLoyaute(- 7);
             Map<Color, Integer> freq = new HashMap<>();
             for (CaseChemin c : chemin) {
                 freq.put(c.getCouleur(), freq.getOrDefault(c.getCouleur(), 0) + 1);
@@ -111,7 +122,7 @@ public class Joueur extends Agent {
             if (maxColor != null) return maxColor;
         } else {
             // Stratégie 4 : tentative d’arnaque, proposer une couleur qu'on n’a pas
-            setFacteur(- 10);
+            setLoyaute(- 10);
             for (Color c : Grille.getPastelcolors()) {
                 if (!c.equals(couleurDemandee)) {
                     return c; 
@@ -285,7 +296,7 @@ public class Joueur extends Agent {
             this.chemin = new ArrayList<>();
             this.calculerCheminVersBut();
             this.enAttenteOffres = false;
-            this.Facteur = 100;
+            this.Loyaute = 100;
 
             @SuppressWarnings("unchecked")
             List<Color> couleurs = (List<Color>) args[3];
@@ -523,13 +534,13 @@ public class Joueur extends Agent {
         }
     }
 
-    public void setFacteur(Integer facteur) {
-        this.Facteur = this.Facteur + facteur;
+    public void setLoyaute(Integer Loyaute) {
+        this.Loyaute = this.Loyaute + Loyaute;
         // Synchroniser avec l'objet dans la grille
         if (grille != null) {
             for (Joueur joueurGrille : grille.getJoueurs()) {
                 if (joueurGrille.getIconPath().equals(this.iconPath)) {
-                    joueurGrille.Facteur = this.Facteur;
+                    joueurGrille.Loyaute = this.Loyaute;
                     break;
                 }
             }
@@ -592,7 +603,22 @@ public class Joueur extends Agent {
         this.enAttenteOffres = enAttenteOffres;
     }
     
-    public Integer getFacteur() {
-        return Facteur;
+    public Integer getLoyaute() {
+        return Loyaute;
     }
+
+    private Integer getLoyauteJoueur(String nomJoueur) {
+    if (grille != null) {
+        for (Joueur joueur : grille.getJoueurs()) {
+            if (joueur.getLocalName() != null && joueur.getLocalName().equals(nomJoueur)) {
+                return joueur.getLoyaute();
+            }
+            // Si pas de localName, essayer avec iconPath (au cas où)
+            if (joueur.getIconPath().contains(nomJoueur)) {
+                return joueur.getLoyaute();
+            }
+        }
+    }
+    return 0; 
+}
 }

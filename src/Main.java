@@ -139,7 +139,7 @@ public class Main {
                 data[i][2] = "(" + joueur.getPosition().getX() + ", " + joueur.getPosition().getY() + ")";
                 data[i][3] = "(" + joueur.getPositionArrivee().getX() + ", " + joueur.getPositionArrivee().getY() + ")";
                 data[i][4] = joueur.getNombreBlocage();
-                data[i][5] = joueur.getFacteur();
+                data[i][5] = joueur.getLoyaute();
                 data[i][6] = joueur.getJetons().size();
 
                 List<Color> jetons = joueur.getJetons();

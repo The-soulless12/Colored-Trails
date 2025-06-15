@@ -63,42 +63,137 @@ public class Grille extends JPanel {
         super.paintComponent(g);
     }
     
-    public void dessinerJoueurs() {
-        // On vide toutes les cases
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[0].length; j++) {
-                cells[i][j].removeAll();
-            }
-        }
+    // public void dessinerJoueurs() {
+    //     // On vide toutes les cases
+    //     for (int i = 0; i < cells.length; i++) {
+    //         for (int j = 0; j < cells[0].length; j++) {
+    //             cells[i][j].removeAll();
+    //         }
+    //     }
 
-        for (Joueur joueur : joueurs) {
-            Position pos = joueur.getPosition();
-            if (pos == null) continue;
+    //     for (Joueur joueur : joueurs) {
+    //         Position pos = joueur.getPosition();
+    //         if (pos == null) continue;
             
-            try {
-                if (pos.getX() >= 0 && pos.getX() < cells.length && 
-                    pos.getY() >= 0 && pos.getY() < cells[0].length) {
+    //         try {
+    //             if (pos.getX() >= 0 && pos.getX() < cells.length && 
+    //                 pos.getY() >= 0 && pos.getY() < cells[0].length) {
                     
-                    RoundedCellPanel cell = cells[pos.getX()][pos.getY()];
-                    ImageIcon icon = new ImageIcon(joueur.getIconPath());
-                    Image scaledImg = icon.getImage().getScaledInstance(
-                        CELL_SIZE - 10, CELL_SIZE - 10, Image.SCALE_SMOOTH);
-                    ImageIcon scaledIcon = new ImageIcon(scaledImg);
-                    JLabel agentLabel = new JLabel(scaledIcon);
-                    agentLabel.setSize(CELL_SIZE - 10, CELL_SIZE - 10);
-                    cell.removeAll();
-                    cell.setLayout(new GridBagLayout());
-                    cell.add(agentLabel);
+    //                 RoundedCellPanel cell = cells[pos.getX()][pos.getY()];
+    //                 ImageIcon icon = new ImageIcon(joueur.getIconPath());
+    //                 Image scaledImg = icon.getImage().getScaledInstance(
+    //                     CELL_SIZE - 10, CELL_SIZE - 10, Image.SCALE_SMOOTH);
+    //                 ImageIcon scaledIcon = new ImageIcon(scaledImg);
+    //                 JLabel agentLabel = new JLabel(scaledIcon);
+    //                 agentLabel.setSize(CELL_SIZE - 10, CELL_SIZE - 10);
+    //                 cell.removeAll();
+    //                 cell.setLayout(new GridBagLayout());
+    //                 cell.add(agentLabel);
                     
-                } else {
-                    System.err.println("Position invalide: " + pos);
-                }
-            } catch (Exception e) {
-                System.err.println("Erreur lors de l'affichage du joueur à " + pos + ": " + e.getMessage());
-                e.printStackTrace();
-            }
+    //             } else {
+    //                 System.err.println("Position invalide: " + pos);
+    //             }
+    //         } catch (Exception e) {
+    //             System.err.println("Erreur lors de l'affichage du joueur à " + pos + ": " + e.getMessage());
+    //             e.printStackTrace();
+    //         }
+    //     }
+    // }
+
+    public void dessinerJoueurs() {
+    // On vide toutes les cases
+    for (int i = 0; i < cells.length; i++) {
+        for (int j = 0; j < cells[0].length; j++) {
+            cells[i][j].removeAll();
         }
     }
+
+    // Créer une Map pour grouper les joueurs par position
+    Map<Position, List<Joueur>> joueursParPosition = new HashMap<>();
+    for (Joueur joueur : joueurs) {
+        Position pos = joueur.getPosition();
+        if (pos == null) continue;
+        joueursParPosition.computeIfAbsent(pos, k -> new ArrayList<>()).add(joueur);
+    }
+
+    // Dessiner les joueurs
+    for (Map.Entry<Position, List<Joueur>> entry : joueursParPosition.entrySet()) {
+        Position pos = entry.getKey();
+        List<Joueur> joueursCase = entry.getValue();
+        
+        if (pos.getX() >= 0 && pos.getX() < cells.length && 
+            pos.getY() >= 0 && pos.getY() < cells[0].length) {
+            
+            RoundedCellPanel cell = cells[pos.getX()][pos.getY()];
+            cell.removeAll();
+            cell.setLayout(null); // On utilise null layout pour positionner précisément
+
+            if (joueursCase.size() == 1) {
+                // Un seul joueur : taille normale au centre
+                Joueur joueur = joueursCase.get(0);
+                ImageIcon icon = new ImageIcon(joueur.getIconPath());
+                Image scaledImg = icon.getImage().getScaledInstance(
+                    CELL_SIZE - 10, CELL_SIZE - 10, Image.SCALE_SMOOTH);
+                JLabel agentLabel = new JLabel(new ImageIcon(scaledImg));
+                agentLabel.setBounds(5, 5, CELL_SIZE - 10, CELL_SIZE - 10);
+                cell.add(agentLabel);
+            } else {
+                // Plusieurs joueurs : taille réduite
+                int petiteTaille = (CELL_SIZE - 5) / 2;
+                
+                // Premier joueur en haut à gauche
+                if (joueursCase.size() >= 1) {
+                    Joueur joueur1 = joueursCase.get(0);
+                    ImageIcon icon1 = new ImageIcon(joueur1.getIconPath());
+                    Image scaledImg1 = icon1.getImage().getScaledInstance(
+                        petiteTaille, petiteTaille, Image.SCALE_SMOOTH);
+                    JLabel label1 = new JLabel(new ImageIcon(scaledImg1));
+                    label1.setBounds(5, 5, petiteTaille, petiteTaille);
+                    cell.add(label1);
+                }
+
+                // Deuxième joueur en bas à droite
+                if (joueursCase.size() >= 2) {
+                    Joueur joueur2 = joueursCase.get(1);
+                    ImageIcon icon2 = new ImageIcon(joueur2.getIconPath());
+                    Image scaledImg2 = icon2.getImage().getScaledInstance(
+                        petiteTaille, petiteTaille, Image.SCALE_SMOOTH);
+                    JLabel label2 = new JLabel(new ImageIcon(scaledImg2));
+                    label2.setBounds(CELL_SIZE - petiteTaille - 10, 
+                                   CELL_SIZE - petiteTaille - 10, 
+                                   petiteTaille, petiteTaille);
+                    cell.add(label2);
+                }
+
+                // Troisième joueur en haut à droite
+                if (joueursCase.size() >= 3) {
+                    Joueur joueur3 = joueursCase.get(2);
+                    ImageIcon icon3 = new ImageIcon(joueur3.getIconPath());
+                    Image scaledImg3 = icon3.getImage().getScaledInstance(
+                        petiteTaille, petiteTaille, Image.SCALE_SMOOTH);
+                    JLabel label3 = new JLabel(new ImageIcon(scaledImg3));
+                    label3.setBounds(CELL_SIZE - petiteTaille - 10, 5, 
+                                   petiteTaille, petiteTaille);
+                    cell.add(label3);
+                }
+
+                // Quatrième joueur en bas à gauche
+                if (joueursCase.size() >= 4) {
+                    Joueur joueur4 = joueursCase.get(3);
+                    ImageIcon icon4 = new ImageIcon(joueur4.getIconPath());
+                    Image scaledImg4 = icon4.getImage().getScaledInstance(
+                        petiteTaille, petiteTaille, Image.SCALE_SMOOTH);
+                    JLabel label4 = new JLabel(new ImageIcon(scaledImg4));
+                    label4.setBounds(5, CELL_SIZE - petiteTaille - 10, 
+                                   petiteTaille, petiteTaille);
+                    cell.add(label4);
+                }
+            }
+            cell.revalidate();
+            cell.repaint();
+        }
+    }
+}
 
     static class RoundedPanel extends JPanel {
         private final int arc;
