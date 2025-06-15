@@ -74,6 +74,7 @@ public class Joueur extends Agent {
 
         if (r < 0.25) {
             // Stratégie 1 : couleur aléatoire différente ou non possédée
+        System.out.println(this.Facteur);
             for (Color c : Grille.getPastelcolors()) {
                 if (!Jetons.contains(c) || !c.equals(couleurDemandee)) {
                     return c;
@@ -81,6 +82,7 @@ public class Joueur extends Agent {
             }
         } else if (r < 0.5) {
             // Stratégie 2 : couleur manquante dans le chemin
+            setFacteur(- 2); 
             Set<Color> couleursDuChemin = new HashSet<>();
             for (CaseChemin c : chemin) {
                 couleursDuChemin.add(c.getCouleur());
@@ -90,9 +92,9 @@ public class Joueur extends Agent {
                     return c;
                 }
             }
-            this.Facteur = this.Facteur - 5;
         } else if (r < 0.75) {
             // Stratégie 3 : couleur la plus fréquente dans le chemin à venir
+            setFacteur(- 7);
             Map<Color, Integer> freq = new HashMap<>();
             for (CaseChemin c : chemin) {
                 freq.put(c.getCouleur(), freq.getOrDefault(c.getCouleur(), 0) + 1);
@@ -107,17 +109,15 @@ public class Joueur extends Agent {
                 }
             }
             if (maxColor != null) return maxColor;
-            this.Facteur = this.Facteur- 10;
         } else {
             // Stratégie 4 : tentative d’arnaque, proposer une couleur qu'on n’a pas
+            setFacteur(- 10);
             for (Color c : Grille.getPastelcolors()) {
                 if (!c.equals(couleurDemandee)) {
                     return c; 
                 }
             }
-            this.Facteur = this.Facteur - 15;
         }
-
         return null;
     }
 
@@ -136,6 +136,7 @@ public class Joueur extends Agent {
             synchroniserPositionAvecGrille();
 
             System.out.println(getLocalName() + " avance vers la position " + position);
+            Main.appendToCommunication(getLocalName() + " avance vers la position " + position);
         } else {
             if (firsttime == true) {
                 System.out.println(getLocalName() + " envoie un SOS demandant la couleur " + couleurCase);
@@ -522,6 +523,19 @@ public class Joueur extends Agent {
         }
     }
 
+    public void setFacteur(Integer facteur) {
+        this.Facteur = this.Facteur + facteur;
+        // Synchroniser avec l'objet dans la grille
+        if (grille != null) {
+            for (Joueur joueurGrille : grille.getJoueurs()) {
+                if (joueurGrille.getIconPath().equals(this.iconPath)) {
+                    joueurGrille.Facteur = this.Facteur;
+                    break;
+                }
+            }
+        }
+    }
+
     public List<CaseChemin> getChemin() {
         return chemin;
     }
@@ -580,9 +594,5 @@ public class Joueur extends Agent {
     
     public Integer getFacteur() {
         return Facteur;
-    }
-
-    public void setFacteur(Integer facteur) {
-        this.Facteur = facteur;
     }
 }
